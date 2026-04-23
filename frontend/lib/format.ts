@@ -12,6 +12,25 @@ export function formatValue(value: number, format: ValueFormat = "number"): stri
   }
 }
 
+/**
+ * Detect which field in a data row holds the category label.
+ *
+ * Prefers "label" (the canonical contract field). If the agent sent a
+ * different string-valued key (quarter, region, period, month, store_name,
+ * etc.), falls back to the first string property on the first row. Returns
+ * "label" if no string field is found (Recharts will then use index, which
+ * at least signals the bug visibly).
+ */
+export function detectCategoryKey(data: any[]): string {
+  if (!data || data.length === 0) return "label";
+  const first = data[0] ?? {};
+  if (typeof first.label === "string") return "label";
+  for (const key of Object.keys(first)) {
+    if (typeof first[key] === "string") return key;
+  }
+  return "label";
+}
+
 /** Returns a tick formatter function for Recharts axes. */
 export function makeTick(format: ValueFormat): (v: number) => string {
   switch (format) {

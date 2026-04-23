@@ -37,17 +37,17 @@ html, body {
 
 [data-copilotkit] {
   --cpk-default-font-family: var(--font-geist-sans), system-ui, sans-serif;
-  --cpk-default-font-size: 11px;
+  --cpk-default-font-size: 12px;
   /* Scale down all cpk text size tokens */
-  --cpk-text-xs: 0.625rem;          /* 10px */
+  --cpk-text-xs: 0.6875rem;          /* 11px */
   --cpk-text-xs--line-height: 1.4;
-  --cpk-text-sm: 0.6875rem;         /* 11px */
+  --cpk-text-sm: 0.75rem;            /* 12px */
   --cpk-text-sm--line-height: 1.45;
-  --cpk-text-base: 0.6875rem;       /* 11px */
+  --cpk-text-base: 0.75rem;          /* 12px */
   --cpk-text-base--line-height: 1.5;
-  --cpk-text-xl: 0.8125rem;         /* 13px */
+  --cpk-text-xl: 0.875rem;           /* 14px */
   --cpk-text-xl--line-height: 1.4;
-  --cpk-text-2xl: 0.875rem;         /* 14px */
+  --cpk-text-2xl: 0.9375rem;         /* 15px */
   --background: var(--ck-surface);
   --card: var(--ck-surface);
   --popover: var(--ck-surface);
@@ -61,7 +61,7 @@ html, body {
 
 /* Force 11px on every element inside the chat panel */
 #chat-panel * {
-  font-size: 11px !important;
+  font-size: 12px !important;
   line-height: 1.5 !important;
 }
 
@@ -73,15 +73,15 @@ html, body {
 }
 
 /* Tighter paragraph / list spacing */
-#chat-panel p  { margin-bottom: 5px !important; }
-#chat-panel li { margin-bottom: 3px !important; }
+#chat-panel p  { margin-bottom: 7px !important; }
+#chat-panel li { margin-bottom: 5px !important; }
 #chat-panel ul,
-#chat-panel ol { margin-top: 3px !important; margin-bottom: 5px !important; }
+#chat-panel ol { margin-top: 5px !important; margin-bottom: 7px !important; }
 
 /* Keep the input area legible but compact */
 #chat-panel textarea,
 #chat-panel input {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 /* ── Recharts tick visibility ─────────────────────────────────────────────── */

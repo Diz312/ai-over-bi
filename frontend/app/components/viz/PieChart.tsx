@@ -1,7 +1,7 @@
 "use client";
 
 import type { PieChartProps } from "@/types/viz";
-import { formatValue } from "@/lib/format";
+import { formatValue, detectCategoryKey } from "@/lib/format";
 import { CHART_COLORS } from "@/lib/chartColors";
 import {
   PieChart as RePieChart,
@@ -58,6 +58,12 @@ export function PieChart({
   inner_radius = 0,
 }: PieChartProps) {
   const outerRadius = 110;
+  const nameKey = detectCategoryKey(data as any[]);
+  // Detect the numeric "value" key if agent used a different name (net_sales, guest_count, etc.)
+  const firstRow: any = data[0] ?? {};
+  const valueKey = typeof firstRow.value === "number"
+    ? "value"
+    : (Object.keys(firstRow).find(k => typeof firstRow[k] === "number") ?? "value");
 
   return (
     <div style={{
@@ -77,8 +83,8 @@ export function PieChart({
         <RePieChart>
           <Pie
             data={data}
-            dataKey="value"
-            nameKey="label"
+            dataKey={valueKey}
+            nameKey={nameKey}
             cx="50%"
             cy="50%"
             outerRadius={outerRadius}

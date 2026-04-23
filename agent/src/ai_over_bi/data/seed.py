@@ -5,9 +5,21 @@ Generates FY2024 data for 100 QuickBite fast food stores across 5 US regions.
 Run with: uv run ai-over-bi-seed
 
 Tables created:
-  stores         — 100 store master records
-  daily_sales    — 36,600 rows (100 stores × 366 days)
-  quarterly_sales — 400 rows (100 stores × 4 quarters, pre-aggregated)
+  stores          — 100 store master records
+  daily_sales     — 36,600 rows (100 stores x 366 days)
+  quarterly_sales — 400 rows (100 stores x 4 quarters, pre-aggregated)
+
+Design goals (v2):
+- Pronounced seasonality: Q3 peak ~1.6x Q1 trough so quarterly bars read clearly.
+- Regional differentiation: Southwest growth, Midwest lag, with regional-seasonal
+  interactions (Northeast Q1 weather drag, Southwest Q3 heat dip, West Q4 lift).
+- Wide store-tier spread (0.48x – 1.75x) for sharp ranking contrast.
+- Higher daily noise so line/area charts show realistic jitter.
+- Monotonic annual growth trend so YoY / sequential comparisons are non-flat.
+- Promo/event day spikes on known dates (Super Bowl, July 4, Black Friday, ...).
+- Per-store avg-check premium so traffic-vs-check correlations are non-trivial.
+
+guest_count is ALWAYS an integer count of orders/visits — never a currency.
 """
 
 import random
@@ -128,58 +140,149 @@ _STORES: list[tuple[int, str, str, str, str]] = [
 
 # ── Sales generation parameters ────────────────────────────────────────────────
 
-# Day-of-week multipliers (0=Monday … 6=Sunday)
-_DOW = {0: 0.86, 1: 0.88, 2: 0.92, 3: 0.95, 4: 1.15, 5: 1.26, 6: 1.12}
+# Day-of-week multipliers (0=Monday … 6=Sunday). Widened vs v1.
+_DOW = {0: 0.78, 1: 0.82, 2: 0.90, 3: 0.96, 4: 1.22, 5: 1.38, 6: 1.18}
 
-# Monthly seasonality (1=Jan … 12=Dec)
+# Monthly seasonality (1=Jan … 12=Dec). Widened for sharper quarterly contrast.
+# Q1 trough ~0.80, Q3 peak ~1.27 → ~1.6x Q3/Q1 ratio.
 _MONTH = {
-    1: 0.88, 2: 0.90, 3: 0.95,   # Q1 — post-holiday slowdown
-    4: 1.00, 5: 1.06, 6: 1.09,   # Q2 — spring build
-    7: 1.13, 8: 1.11, 9: 1.04,   # Q3 — summer peak
-    10: 1.01, 11: 1.06, 12: 1.09, # Q4 — holiday lift
+    1: 0.80, 2: 0.76, 3: 0.90,    # Q1 — post-holiday trough, Feb weather drag
+    4: 1.00, 5: 1.10, 6: 1.18,    # Q2 — spring ramp
+    7: 1.32, 8: 1.27, 9: 1.15,    # Q3 — summer peak (travel, longer days)
+    10: 1.02, 11: 1.10, 12: 1.22, # Q4 — holiday lift (Dec strongest)
 }
 
-# Per-store performance tier multiplier (assigned once, consistent across time)
-def _store_multiplier(store_id: int) -> float:
-    """Deterministic performance tier based on store_id."""
+# Per-region multiplier — captures market-level differentiation.
+# Widened spread: Southwest dominant (~1.55x) vs Midwest lagging (~0.62x).
+# That's a ~2.5x gap top-to-bottom so regional charts read with clear hierarchy.
+_REGION_BASE = {
+    "Southwest": 1.55,   # Texas/AZ growth story — leads the chain
+    "West":      1.28,   # strong CA/PNW urban markets
+    "Northeast": 0.98,   # premium check but smaller guest volume
+    "Southeast": 0.82,   # softer markets, value-heavy
+    "Midwest":   0.62,   # clearly lagging — urban decline, weather drag
+}
+
+# Regional-seasonal interaction. Shape: (region, quarter) -> multiplier.
+# Applied on top of base region x monthly seasonality — drives divergent
+# quarterly curves per region.
+_REGION_QUARTER: dict[tuple[str, str], float] = {
+    # Northeast — punished by winter, modest summer, decent holiday lift.
+    ("Northeast", "Q1"): 0.78,   # severe winter storms
+    ("Northeast", "Q2"): 1.02,
+    ("Northeast", "Q3"): 1.04,
+    ("Northeast", "Q4"): 1.10,
+    # Midwest — worst Q1 of any region, flat summer, weak holiday.
+    ("Midwest",   "Q1"): 0.72,   # polar vortex, blizzards
+    ("Midwest",   "Q2"): 0.95,
+    ("Midwest",   "Q3"): 1.00,
+    ("Midwest",   "Q4"): 0.92,
+    # Southeast — year-round warm, tourism-driven, solid Q3.
+    ("Southeast", "Q1"): 1.04,   # snowbird season
+    ("Southeast", "Q2"): 0.98,
+    ("Southeast", "Q3"): 1.12,   # FL/coastal tourism peak
+    ("Southeast", "Q4"): 1.08,
+    # Southwest — huge summer dip (heat), massive Q4 snowbird/visitor influx.
+    ("Southwest", "Q1"): 1.06,
+    ("Southwest", "Q2"): 1.02,
+    ("Southwest", "Q3"): 0.84,   # 110F+ Phoenix/Texas heat suppresses traffic
+    ("Southwest", "Q4"): 1.18,   # snowbird / tourism / ideal weather
+    # West — CA tourism peaks in summer, softens in winter.
+    ("West",      "Q1"): 0.92,
+    ("West",      "Q2"): 1.04,
+    ("West",      "Q3"): 1.18,   # CA/NV/Vegas tourism peak
+    ("West",      "Q4"): 1.02,
+}
+
+# Event-day multipliers. Applied to all stores on these specific dates.
+_EVENT_DAYS: dict[date, float] = {
+    date(2024, 2, 11):  1.28,   # Super Bowl Sunday
+    date(2024, 3, 17):  1.15,   # St. Patrick's Day
+    date(2024, 5, 27):  1.20,   # Memorial Day
+    date(2024, 7, 4):   1.32,   # Independence Day
+    date(2024, 9, 2):   1.18,   # Labor Day
+    date(2024, 10, 31): 1.12,   # Halloween
+    date(2024, 11, 28): 0.55,   # Thanksgiving (many stores closed/reduced)
+    date(2024, 11, 29): 1.28,   # Black Friday
+    date(2024, 12, 24): 0.78,   # Christmas Eve (reduced hours)
+    date(2024, 12, 25): 0.35,   # Christmas Day (most closed)
+    date(2024, 12, 26): 1.22,   # Boxing Day bounce
+    date(2024, 12, 31): 1.15,   # NYE
+}
+
+
+def _store_profile(store_id: int) -> tuple[float, float]:
+    """Return (performance_tier, check_premium) for a store.
+
+    performance_tier — overall volume multiplier (0.48 – 1.75).
+    check_premium   — per-guest-check multiplier (0.88 – 1.14), independent of
+                      tier so we get 'high-check/low-traffic' and
+                      'low-check/high-traffic' stores for non-trivial scatter.
+    """
     rng = random.Random(store_id * 42)
-    tier = rng.random()
-    if tier > 0.85:   return rng.uniform(1.28, 1.45)   # top tier (~15%)
-    if tier > 0.60:   return rng.uniform(1.08, 1.27)   # upper-mid (~25%)
-    if tier > 0.30:   return rng.uniform(0.93, 1.07)   # mid (~30%)
-    if tier > 0.12:   return rng.uniform(0.80, 0.92)   # lower-mid (~18%)
-    return rng.uniform(0.62, 0.79)                      # bottom (~12%)
+    tier_roll = rng.random()
+    if tier_roll > 0.90:   tier = rng.uniform(1.48, 1.75)   # star stores (~10%)
+    elif tier_roll > 0.70: tier = rng.uniform(1.15, 1.44)   # strong     (~20%)
+    elif tier_roll > 0.35: tier = rng.uniform(0.90, 1.12)   # middle     (~35%)
+    elif tier_roll > 0.10: tier = rng.uniform(0.68, 0.88)   # lagging    (~25%)
+    else:                  tier = rng.uniform(0.48, 0.66)   # struggling (~10%)
+
+    check_premium = rng.uniform(0.88, 1.14)
+    return tier, check_premium
 
 
 # ── Seed functions ─────────────────────────────────────────────────────────────
 
-def _generate_daily(store_id: int) -> list[tuple]:
+
+def _quarter_for(d: date) -> str:
+    return f"Q{(d.month - 1) // 3 + 1}"
+
+
+def _generate_daily(store_id: int, region: str) -> list[tuple]:
     """Generate FY2024 daily sales rows for one store."""
     rng = random.Random(store_id * 7919)
-    perf = _store_multiplier(store_id)
-    # Base metrics
-    base_sales = 4_500.0 * perf
-    base_guests = 265 * perf
+    tier, check_premium = _store_profile(store_id)
+    region_base = _REGION_BASE.get(region, 1.0)
+
+    # Base daily metrics (before multipliers).
+    base_sales = 4_500.0 * tier * region_base
+    base_guests = 280 * tier * region_base
 
     rows = []
     day = date(2024, 1, 1)
     end = date(2024, 12, 31)
+    day_index = 0
+    total_days = (end - day).days + 1
+
     while day <= end:
         dow_m = _DOW[day.weekday()]
         month_m = _MONTH[day.month]
-        noise = rng.gauss(1.0, 0.06)
+        rq_m = _REGION_QUARTER.get((region, _quarter_for(day)), 1.0)
+        event_m = _EVENT_DAYS.get(day, 1.0)
+        # Small organic growth across the year: +6% from Jan → Dec.
+        growth_m = 1.0 + 0.06 * (day_index / total_days)
 
-        net_sales = round(base_sales * dow_m * month_m * noise, 2)
-        guest_count = max(10, int(base_guests * dow_m * month_m * rng.gauss(1.0, 0.08)))
+        # Daily noise — wider than v1 for realistic jitter.
+        sales_noise = rng.gauss(1.0, 0.11)
+        guest_noise = rng.gauss(1.0, 0.13)
+        # Rare shocks: 1.5% of days see a ±25% swing (weather, local event).
+        if rng.random() < 0.015:
+            shock = rng.uniform(0.70, 1.30)
+            sales_noise *= shock
+            guest_noise *= shock
+
+        common = dow_m * month_m * rq_m * event_m * growth_m
+
+        guest_count = max(8, int(base_guests * common * guest_noise))
+        # Sales slightly decoupled from guests via check_premium, so avg_check
+        # varies meaningfully by store.
+        net_sales = round(base_sales * common * sales_noise * check_premium, 2)
         avg_check = round(net_sales / guest_count, 2)
 
         rows.append((store_id, day.isoformat(), net_sales, guest_count, avg_check))
         day += timedelta(days=1)
+        day_index += 1
     return rows
-
-
-def _quarter_for(d: date) -> str:
-    return f"Q{(d.month - 1) // 3 + 1}"
 
 
 def main() -> None:
@@ -238,8 +341,8 @@ def main() -> None:
 
     # ── Daily sales ───────────────────────────────────────────────────────────
     all_daily: list[tuple] = []
-    for store_id, *_ in _STORES:
-        all_daily.extend(_generate_daily(store_id))
+    for store_id, _name, _city, _state, region in _STORES:
+        all_daily.extend(_generate_daily(store_id, region))
     cur.executemany(
         "INSERT INTO daily_sales (store_id, date, net_sales, guest_count, avg_check) VALUES (?,?,?,?,?)",
         all_daily,
@@ -268,9 +371,38 @@ def main() -> None:
     qtrly_count = cur.fetchone()[0]
     print(f"  Inserted {qtrly_count} quarterly rows")
 
+    # ── Sanity summary — so the user sees variability at a glance ─────────────
+    cur.execute("""
+        SELECT quarter,
+               ROUND(SUM(net_sales) / 1e6, 2)   AS net_sales_m,
+               SUM(guest_count)                 AS guests,
+               ROUND(SUM(net_sales) / SUM(guest_count), 2) AS avg_check
+          FROM quarterly_sales
+         GROUP BY quarter
+         ORDER BY quarter
+    """)
+    print("\n  FY2024 quarterly rollup:")
+    print(f"    {'Quarter':<8} {'Net Sales ($M)':>16} {'Guests':>12} {'Avg Check':>11}")
+    for q, ns, gc, ac in cur.fetchall():
+        print(f"    {q:<8} {ns:>16,.2f} {gc:>12,} {ac:>11,.2f}")
+
+    cur.execute("""
+        SELECT s.region,
+               ROUND(SUM(q.net_sales) / 1e6, 2) AS net_sales_m,
+               SUM(q.guest_count)               AS guests,
+               ROUND(SUM(q.net_sales) / SUM(q.guest_count), 2) AS avg_check
+          FROM quarterly_sales q JOIN stores s USING (store_id)
+         GROUP BY s.region
+         ORDER BY net_sales_m DESC
+    """)
+    print("\n  FY2024 regional rollup:")
+    print(f"    {'Region':<12} {'Net Sales ($M)':>16} {'Guests':>12} {'Avg Check':>11}")
+    for r, ns, gc, ac in cur.fetchall():
+        print(f"    {r:<12} {ns:>16,.2f} {gc:>12,} {ac:>11,.2f}")
+
     conn.commit()
     conn.close()
-    print("Done.")
+    print("\nDone.")
 
 
 if __name__ == "__main__":

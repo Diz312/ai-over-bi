@@ -1,7 +1,7 @@
 "use client";
 
 import type { LineChartProps } from "@/types/viz";
-import { formatValue, makeTick } from "@/lib/format";
+import { formatValue, makeTick, detectCategoryKey } from "@/lib/format";
 import { CHART_COLORS } from "@/lib/chartColors";
 import {
   LineChart as ReLineChart,
@@ -48,6 +48,7 @@ export function LineChart({
   y_axis_label,
 }: LineChartProps) {
   const tickFmt = makeTick(value_format);
+  const categoryKey = detectCategoryKey(data as any[]);
 
   return (
     <div style={{
@@ -66,7 +67,7 @@ export function LineChart({
       <ResponsiveContainer width="100%" height={300}>
         <ReLineChart data={data} margin={{ top: 4, right: 24, bottom: 36, left: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} height={40} />
+          <XAxis dataKey={categoryKey} tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} height={40} />
           <YAxis tickFormatter={tickFmt} tick={{ fontSize: 11, fill: "#64748B" }} axisLine={false} tickLine={false} width={56} />
           <Tooltip content={<CustomTooltip value_format={value_format} />} />
           {series.length > 1 && (

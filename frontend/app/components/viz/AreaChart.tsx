@@ -1,7 +1,7 @@
 "use client";
 
 import type { AreaChartProps } from "@/types/viz";
-import { formatValue, makeTick } from "@/lib/format";
+import { formatValue, makeTick, detectCategoryKey } from "@/lib/format";
 import { CHART_COLORS } from "@/lib/chartColors";
 import {
   AreaChart as ReAreaChart,
@@ -47,6 +47,7 @@ export function AreaChart({
   x_axis_label,
 }: AreaChartProps) {
   const tickFmt = makeTick(value_format);
+  const categoryKey = detectCategoryKey(data as any[]);
 
   return (
     <div style={{
@@ -76,7 +77,7 @@ export function AreaChart({
             })}
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} height={40} />
+          <XAxis dataKey={categoryKey} tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} height={40} />
           <YAxis tickFormatter={tickFmt} tick={{ fontSize: 11, fill: "#64748B" }} axisLine={false} tickLine={false} width={56} />
           <Tooltip content={<CustomTooltip value_format={value_format} />} />
           {series.length > 1 && (

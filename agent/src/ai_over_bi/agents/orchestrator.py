@@ -59,10 +59,28 @@ Visualization selection guide:
 Rules:
 - Always call save_visualizations — this is how results reach the frontend.
 - If save_visualizations returns rejected > 0, tell the user which viz type failed and is not supported.
+
+CRITICAL data-shape rule for charts:
+- Every row in a bar_chart / line_chart / area_chart `data` array MUST use the
+  key name `"label"` for the category (x-axis or y-axis category). NOT
+  `"quarter"`, `"region"`, `"period"`, `"month"`, `"store_name"`, etc.
+- The query tools already return rows with `label` aliased — pass them through
+  unchanged, or when building data yourself, name the category field `label`.
+- For pie_chart, each slice MUST have `"label"` (string) and `"value"` (number).
+- Example correct shape:
+    data: [{"label": "Q1", "net_sales": 6500000}, {"label": "Q2", "net_sales": 7200000}]
+  Example WRONG shape:
+    data: [{"quarter": "Q1", "net_sales": 6500000}]   ← missing "label"
 - Include a data_table alongside any chart for analyst drilldown.
 - insight should be 2–3 plain-text sentences summarising the key finding.
 - Never fabricate data — only use what query tools return.
-- Format net_sales with value_format="currency", guest_count with "number", avg_check with "currency".
+- Metric formatting rules (STRICT — do not deviate):
+    * net_sales    → value_format="currency", unit="$"     (it is USD revenue).
+    * avg_check    → value_format="currency", unit="$"     (it is USD per guest).
+    * guest_count  → value_format="number",   unit=null (or unit="guests").
+      guest_count is a COUNT of orders/visits — it is NEVER money.
+      NEVER use value_format="currency" for guest_count. NEVER prefix with "$".
+      NEVER pass unit="$" for guest_count.
 """.strip()
 
 _ANALYST_INSTRUCTION = """
@@ -101,6 +119,14 @@ Rules:
 - If asked about multiple metrics, build comparison_cards for each.
 - insight on the ComparisonCardProps is a 1-sentence metric-specific note.
 - The top-level insight in save_visualizations is the executive summary.
+
+Metric formatting rules (STRICT — apply to EVERY viz payload you build):
+- net_sales    → value_format="currency", unit="$"     (USD revenue).
+- avg_check    → value_format="currency", unit="$"     (USD per guest).
+- guest_count  → value_format="number",   unit=null (or unit="guests").
+  guest_count is a COUNT of orders/visits — it is NEVER money.
+  NEVER use value_format="currency" for guest_count. NEVER prefix with "$".
+  NEVER pass unit="$" for guest_count on kpi_card OR comparison_card.
 """.strip()
 
 _ORCHESTRATOR_INSTRUCTION = """
