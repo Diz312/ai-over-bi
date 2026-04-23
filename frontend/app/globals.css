@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+:root {
+  /* McDonald's brand palette */
+  --mcd-gold: #FFBC0D;
+  --mcd-red: #DA291C;
+  --mcd-dark: #27251F;
+  --mcd-gold-light: #FFF8E7;
+  --mcd-gold-mid: #FFE082;
+
+  --accent: #FFBC0D;
+  --accent-hover: #F5A800;
+  --bg: #F5F5F5;
+  --surface: #FFFFFF;
+  --border: #E2E8F0;
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --positive: #2E7D32;     /* keep green for financial positive */
+  --negative: #DA291C;     /* McD red for negative */
+  --font: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── CopilotKit theming ────────────────────────────────────────────────────── */
+
+:root {
+  --ck-surface: #FFFFFF;
+}
+
+[data-copilotkit] {
+  --cpk-default-font-family: var(--font-geist-sans), system-ui, sans-serif;
+  --cpk-default-font-size: 11px;
+  /* Scale down all cpk text size tokens */
+  --cpk-text-xs: 0.625rem;          /* 10px */
+  --cpk-text-xs--line-height: 1.4;
+  --cpk-text-sm: 0.6875rem;         /* 11px */
+  --cpk-text-sm--line-height: 1.45;
+  --cpk-text-base: 0.6875rem;       /* 11px */
+  --cpk-text-base--line-height: 1.5;
+  --cpk-text-xl: 0.8125rem;         /* 13px */
+  --cpk-text-xl--line-height: 1.4;
+  --cpk-text-2xl: 0.875rem;         /* 14px */
+  --background: var(--ck-surface);
+  --card: var(--ck-surface);
+  --popover: var(--ck-surface);
+}
+
+[data-copilotkit] textarea {
+  background-color: #ffffff;
+}
+
+/* ── Chat panel overrides ─────────────────────────────────────────────────── */
+
+/* Force 11px on every element inside the chat panel */
+#chat-panel * {
+  font-size: 11px !important;
+  line-height: 1.5 !important;
+}
+
+/* Left/right breathing room for the messages list */
+#chat-panel [class*="message"],
+#chat-panel [class*="Message"] {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+/* Tighter paragraph / list spacing */
+#chat-panel p  { margin-bottom: 5px !important; }
+#chat-panel li { margin-bottom: 3px !important; }
+#chat-panel ul,
+#chat-panel ol { margin-top: 3px !important; margin-bottom: 5px !important; }
+
+/* Keep the input area legible but compact */
+#chat-panel textarea,
+#chat-panel input {
+  font-size: 11px !important;
+}
+
+/* ── Recharts tick visibility ─────────────────────────────────────────────── */
+/* Force SVG axis tick text to be visible regardless of any upstream CSS that
+   may reset fill, font-size, or visibility on svg text/tspan elements. */
+.recharts-cartesian-axis-tick text,
+.recharts-cartesian-axis-tick tspan,
+.recharts-cartesian-axis-tick-value,
+.recharts-cartesian-axis-tick-value tspan {
+  fill: #475569 !important;
+  font-size: 11px !important;
+  font-family: var(--font-geist-sans), system-ui, sans-serif !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline !important;
+}
+
+/* Legend text inside Recharts */
+.recharts-legend-item-text {
+  color: #475569 !important;
+  font-size: 11px !important;
+}
