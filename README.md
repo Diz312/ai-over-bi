@@ -42,8 +42,8 @@ insight grounded in QSR industry benchmarks.
 │  Next.js server (port 3000)                   │                    │
 │  ┌─────────────────────────────────────────┐  │                    │
 │  │ CopilotRuntime                          │  │                    │
-│  │  ├─ AnthropicAdapter (Haiku)            │  │  suggestions,      │
-│  │  │                                       │  │  peripherals      │
+│  │  ├─ AnthropicAdapter (Peripheral Agent) │  │                    │
+│  │  │                                      │  │                    │
 │  │  └─ HttpAgent ─────────────┐            │  │                    │
 │  └────────────────────────────┼────────────┘  │                    │
 └───────────────────────────────┼───────────────┼────────────────────┘
