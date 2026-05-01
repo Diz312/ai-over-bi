@@ -50,66 +50,25 @@ def render_surface(
     This is the ONLY way to push visualizations to the frontend. Call this after
     you have determined what data to show and chosen the appropriate viz components.
 
-    The `visualizations` parameter is a list of VizPayload objects. Each must have a
-    `vizType` discriminator field and a matching `props` object. Supported vizType values:
+    Each item in `visualizations` is a dict with two keys:
+      - `vizType`: one of the discriminator values listed in the system prompt's
+                   "Available visualizations" section (e.g. "kpi_card", "bar_chart").
+      - `props`:   a dict of properties matching that viz type's schema.
 
-    "kpi_card" — Single metric summary card.
-      props: { title, value, unit?, value_format?, delta?: {value, type, direction, label?},
-               trend?: [{period, value}], subtitle? }
-
-    "comparison_card" — Period-over-period comparison for one metric.
-      props: { title, metric, unit?, value_format?,
-               current: {label, value}, prior: {label, value},
-               delta: {value, type, direction, label?}, insight? }
-
-    "bar_chart" — Categorical bar chart (vertical or horizontal).
-      props: { title?, data: [{label, <seriesKey>: number}],
-               series: [{key, label, color?}], layout?, value_format?,
-               x_axis_label?, y_axis_label? }
-
-    "line_chart" — Time-series line chart.
-      props: { title?, data: [{label, <seriesKey>: number}],
-               series: [{key, label, color?}], value_format?, show_dots?,
-               x_axis_label?, y_axis_label? }
-
-    "area_chart" — Filled area chart (good for cumulative trends).
-      props: { title?, data: [{label, <seriesKey>: number}],
-               series: [{key, label, color?}], value_format?, stacked?,
-               x_axis_label?, y_axis_label? }
-
-    "pie_chart" — Part-to-whole distribution (shares/mix).
-      props: { title?, data: [{label, value, color?}],
-               value_format?, show_labels?, inner_radius? }
-      Use inner_radius=60 for a donut chart. Best for 3–8 slices.
-
-    "data_table" — Tabular detail view.
-      props: { title?, columns: [{key, label, type?, align?}],
-               rows: [{<key>: value}], caption? }
-
-    value_format options: "number" | "currency" | "percentage" | "raw"
-    delta.type options:   "percentage" | "absolute"
-    delta.direction:      "up" | "down" | "flat"
-    layout options:       "vertical" | "horizontal"
-
-    GUIDELINES for choosing components:
-    - Single metric overview     → 1 kpi_card
-    - Multiple metric summary    → multiple kpi_cards (3–4 max in a row)
-    - Period comparison          → comparison_card per metric + supporting bar_chart
-    - Store/region ranking       → bar_chart with layout="horizontal" (top 10–15)
-    - Trend over time            → line_chart or area_chart
-    - Detailed breakdown         → data_table
-    - Always include a data_table for detailed drilldown alongside charts.
-    - Use pie_chart for share/mix breakdowns (e.g. sales by region as % of total).
+    The system prompt is the source of truth for which viz types are available
+    and what props each accepts — see the catalog there before constructing
+    payloads.
 
     Args:
-        visualizations: List of VizPayload dicts conforming to the schema above.
-        insight:        Top-level analyst narrative (2–4 sentences). Plain text, no markdown.
-                        Should explain the "so what" — key takeaway for the business analyst.
+        visualizations: List of VizPayload dicts. See system prompt for catalog.
+        insight:        Top-level analyst narrative (2–4 sentences, plain text).
+                        The "so what" — key takeaway for the business analyst.
+                        Pass None if no narrative is appropriate.
         tool_context:   Injected by ADK — do not pass.
 
     Returns:
-        Serialized A2UI v0.9 operations string. CopilotRuntime intercepts this
-        tool result and renders the surface — it does not reach the LLM as text.
+        A2UI v0.9 operations dict. CopilotRuntime intercepts this tool result and
+        renders the surface — it never reaches the LLM as text.
     """
     inv = tool_context._invocation_context
 

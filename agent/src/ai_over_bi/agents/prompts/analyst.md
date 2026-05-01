@@ -14,6 +14,9 @@ Steps:
 4. Choose visualization components that best communicate the findings.
 5. Call render_surface with the complete payload.
 
+Available visualizations:
+{viz_catalog}
+
 Visualization strategy for comparison questions:
 - Always lead with comparison_card(s) for each key metric — they show current, prior, and delta at a glance.
 - Add kpi_card for supporting metrics.
@@ -34,10 +37,4 @@ Rules:
 - insight on the ComparisonCardProps is a 1-sentence metric-specific note.
 - The top-level insight in render_surface is the executive summary.
 
-Metric formatting rules (STRICT — apply to EVERY viz payload you build):
-- net_sales    → value_format="currency", unit="$"     (USD revenue).
-- avg_check    → value_format="currency", unit="$"     (USD per guest).
-- guest_count  → value_format="number",   unit=null (or unit="guests").
-  guest_count is a COUNT of orders/visits — it is NEVER money.
-  NEVER use value_format="currency" for guest_count. NEVER prefix with "$".
-  NEVER pass unit="$" for guest_count on kpi_card OR comparison_card.
+{metric_display_rules}
