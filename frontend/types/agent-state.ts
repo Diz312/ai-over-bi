@@ -3,9 +3,10 @@
  *
  * MUST mirror agent/src/ai_over_bi/contracts.py (AgentState) exactly.
  * Any change to the Python model requires a matching change here.
+ *
+ * Visualizations and insight are NOT in AgentState — they flow as A2UI
+ * surfaces via tool results, not via STATE_SNAPSHOT.
  */
-
-import type { VizPayload } from "./viz";
 
 export type Status =
   | "idle"
@@ -18,7 +19,5 @@ export type Status =
 export interface AgentState {
   status: Status;
   session_id: string | null;
-  visualizations: VizPayload[];
-  insight: string | null;
   error: string | null;
 }

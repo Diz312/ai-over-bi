@@ -1,31 +1,29 @@
 import {
   CopilotRuntime,
-  AnthropicAdapter,
-  copilotRuntimeNextJSAppRouterEndpoint,
-} from "@copilotkit/runtime";
+  BuiltInAgent,
+  InMemoryAgentRunner,
+  createCopilotRuntimeHandler,
+} from "@copilotkit/runtime/v2";
 import { HttpAgent } from "@ag-ui/client";
-import Anthropic from "@anthropic-ai/sdk";
-import { NextRequest } from "next/server";
 
-// AnthropicAdapter handles peripheral ops (suggestions, CopilotTask, etc.)
-// All agent reasoning happens in the ADK backend.
-const serviceAdapter = new AnthropicAdapter({
-  anthropic: new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }),
-  model: "claude-haiku-4-5-20251001",
-});
-
+// Two-agent setup:
+//   ai_over_bi — HttpAgent → ADK backend (full BI agent hierarchy)
+//   default    — BuiltInAgent wrapping Anthropic haiku for peripheral tasks
+//                (suggestions, CopilotTask, etc.). API key auto-resolved
+//                from ANTHROPIC_API_KEY env var.
 const runtime = new CopilotRuntime({
   agents: {
     ai_over_bi: new HttpAgent({ url: "http://localhost:8000/agent" }),
+    default: new BuiltInAgent({ model: "anthropic/claude-3.5-haiku" }),
   },
+  runner: new InMemoryAgentRunner(),
+  a2ui: {}, // enables A2UI middleware — intercepts a2ui_operations in tool results
 });
 
-export const POST = async (req: NextRequest) => {
-  const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
-    runtime,
-    serviceAdapter,
-    endpoint: "/api/copilotkit",
-  });
+const handler = createCopilotRuntimeHandler({
+  runtime,
+  basePath: "/api/copilotkit",
+  mode: "single-route",
+});
 
-  return handleRequest(req);
-};
+export const POST = (req: Request) => handler(req);

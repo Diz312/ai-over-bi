@@ -1,15 +1,13 @@
 """
-Canonical data contracts for AI over BI agent state.
+Canonical data contracts for AI over BI.
 
-This module is the single source of truth for every shape that flows through
-tool_context.state and is streamed to the frontend via AG-UI STATE_SNAPSHOT.
+Single source of truth for all data shapes in the system.
+All tools and agents reference these models — never redefine them elsewhere.
 
-Rules:
-- Tools MUST serialize through these models before writing to state.
-- The frontend TypeScript types in frontend/types/viz.ts and frontend/types/agent-state.ts
-  MUST mirror these models exactly. Any change here requires a matching change there.
-- Raw query results are returned to the LLM but are NOT written to state directly —
-  only validated VizPayload objects go to state via save_visualizations().
+- VizPayload models: internal spec the LLM writes to when calling render_surface().
+  render_surface() validates against these before building A2UI v0.9 operations.
+- AgentState: the state shape streamed to the frontend via AG-UI STATE_SNAPSHOT.
+  Visualizations are emitted as A2UI v0.9 surfaces — they do not flow through state.
 """
 
 from typing import Annotated, Any, Literal, Union
@@ -45,6 +43,13 @@ class SeriesConfig(BaseModel):
     key: str
     label: str
     color: str | None = None  # hex color; frontend applies palette default if absent
+
+
+class PeriodData(BaseModel):
+    """Single period value for comparison cards."""
+
+    label: str    # e.g. "Q3 2024"
+    value: float
 
 
 # ── Viz component props ────────────────────────────────────────────────────────
@@ -102,11 +107,6 @@ class DataTableProps(BaseModel):
     columns: list[DataTableColumn]
     rows: list[dict[str, Any]]
     caption: str | None = None
-
-
-class PeriodData(BaseModel):
-    label: str    # e.g. "Q3 2024"
-    value: float
 
 
 class PieChartProps(BaseModel):
@@ -179,18 +179,20 @@ VizPayload = Annotated[
     Field(discriminator="vizType"),
 ]
 
-# ── Full agent state ───────────────────────────────────────────────────────────
+# ── Agent state ────────────────────────────────────────────────────────────────
 
 
 class AgentState(BaseModel):
-    """Complete state shape streamed to the frontend via AG-UI STATE_SNAPSHOT.
+    """Agent state streamed to the frontend via AG-UI STATE_SNAPSHOT.
+
+    Visualizations and insight are no longer carried in state — they are
+    emitted as A2UI v0.9 surfaces via render_surface() and intercepted by
+    CopilotRuntime middleware. Only status signals remain here for loading
+    state indicators in the frontend.
 
     All fields are optional / have defaults so partial state updates are safe.
-    The frontend must treat any field as potentially absent.
     """
 
     status: Status = "idle"
     session_id: str | None = None
-    visualizations: list[VizPayload] = Field(default_factory=list)
-    insight: str | None = None       # top-level analyst narrative
     error: str | None = None
