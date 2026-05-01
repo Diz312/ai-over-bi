@@ -46,7 +46,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             "host": settings.HOST,
             "port": settings.PORT,
             "orchestrator_model": settings.ORCHESTRATOR_MODEL,
-            "subagent_model": settings.SUBAGENT_MODEL,
+            "analyst_model": settings.ANALYST_MODEL,
+            "query_model": settings.QUERY_MODEL,
             "db_path": settings.DB_PATH,
         },
     )

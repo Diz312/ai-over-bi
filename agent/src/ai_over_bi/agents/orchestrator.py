@@ -11,7 +11,6 @@ Architecture:
 """
 
 import logging
-from pathlib import Path
 
 from ag_ui_adk import ADKAgent
 from google.adk.agents import LlmAgent
@@ -20,11 +19,12 @@ from google.adk.models.lite_llm import LiteLlm
 from ai_over_bi.config import settings
 from ai_over_bi.agents.data_query import build_data_query_agent
 from ai_over_bi.agents.analyst import build_analyst_agent
+from ai_over_bi.agents.prompt_loader import load_prompt
 from ai_over_bi.tools.a2ui import render_surface
 
 logger = logging.getLogger(__name__)
 
-_INSTRUCTION = (Path(__file__).parent / "prompts" / "orchestrator.md").read_text().strip()
+_INSTRUCTION = load_prompt("orchestrator.md")
 
 
 def build_orchestrator() -> LlmAgent:
@@ -44,8 +44,7 @@ def build_orchestrator() -> LlmAgent:
         extra={
             "root": orchestrator.name,
             "orchestrator_model": settings.ORCHESTRATOR_MODEL,
-            "subagent_model": settings.SUBAGENT_MODEL,
-            "sub_agents": [data_query_agent.name, analyst_agent.name],
+            "sub_agents": [data_query_agent.name, analyst_agent.name]
         },
     )
     return orchestrator

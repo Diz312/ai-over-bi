@@ -21,6 +21,7 @@ from copilotkit import a2ui
 from google.adk.tools import ToolContext
 from pydantic import TypeAdapter, ValidationError
 
+from ai_over_bi.catalog import COMPONENT_BY_VIZ_TYPE
 from ai_over_bi.contracts import VizPayload
 
 logger = logging.getLogger(__name__)
@@ -32,17 +33,9 @@ BI_CATALOG_ID = "https://github.com/Diz312/gen-ui/catalogs/bi/v1"
 # Surface ID — single dashboard surface for this app.
 BI_SURFACE_ID = "bi-dashboard"
 
-# Maps VizPayload discriminator values to A2UI component type names.
-# These must match the component keys registered in the frontend catalog.
-_VIZ_TYPE_TO_COMPONENT: dict[str, str] = {
-    "kpi_card":       "KPICard",
-    "bar_chart":      "BarChart",
-    "line_chart":     "LineChart",
-    "area_chart":     "AreaChart",
-    "data_table":     "DataTable",
-    "pie_chart":      "PieChart",
-    "comparison_card": "ComparisonCard",
-}
+# vizType → A2UI component name map. Sourced from catalog.py — the catalog
+# manifest is the single source of truth. Adding a viz only requires editing
+# catalog.py + contracts.py; this tool picks it up automatically.
 
 _viz_adapter: TypeAdapter[VizPayload] = TypeAdapter(VizPayload)  # type: ignore[type-arg]
 
@@ -154,7 +147,7 @@ def render_surface(
 
     # One component per validated viz payload
     for i, viz in enumerate(validated):
-        comp_type = _VIZ_TYPE_TO_COMPONENT.get(viz["vizType"])
+        comp_type = COMPONENT_BY_VIZ_TYPE.get(viz["vizType"])
         if not comp_type:
             logger.warning("Unknown vizType — skipping", extra={"vizType": viz["vizType"]})
             continue

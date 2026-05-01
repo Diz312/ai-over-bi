@@ -26,7 +26,8 @@ class Settings(BaseSettings):
 
     # Models
     ORCHESTRATOR_MODEL: str = "claude-sonnet-4-6"
-    SUBAGENT_MODEL: str = "claude-haiku-4-5-20251001"
+    ANALYST_MODEL: str = "claude-sonnet-4-6"
+    QUERY_MODEL: str = "claude-haiku-4-5-20251001"
 
     # Database
     DB_PATH: str = str(_DB_DEFAULT)
