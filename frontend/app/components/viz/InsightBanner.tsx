@@ -1,65 +1,172 @@
 "use client";
 
-/**
- * InsightBanner — top-level analyst narrative.
- *
- * Rendered as the first child of every BI surface (when an insight is present).
- * The agent emits this via the InsightBanner component in the A2UI surface tree.
- */
+import { useState } from "react";
 
 interface InsightBannerProps {
   text: string;
 }
 
-export function InsightBanner({ text }: InsightBannerProps) {
+function ChevronIcon({ open }: { open: boolean }) {
   return (
-    <div style={{
-      background: "#FFF8E7",
-      border: "1px solid #FFE082",
-      borderRadius: 10,
-      padding: "14px 18px",
-      marginBottom: 4,
-      display: "flex",
-      gap: 12,
-      alignItems: "flex-start",
-    }}>
-      <div style={{
-        width: 28,
-        height: 28,
-        borderRadius: 6,
-        background: "#FFBC0D",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        marginTop: 1,
-      }}>
-        <AnalystIcon />
-      </div>
-      <div>
-        <div style={{
-          fontSize: 10,
-          fontWeight: 700,
-          color: "#7A5200",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          marginBottom: 4,
-        }}>
-          Analyst Insight
-        </div>
-        <p style={{ fontSize: 13, color: "#3D2B00", lineHeight: 1.65, margin: 0 }}>
-          {text}
-        </p>
-      </div>
-    </div>
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      style={{ flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
+    >
+      <path d="M8 10L12 14L16 10" stroke="#292929" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
-function AnalystIcon() {
+function ThumbSVG({ flipped, color }: { flipped: boolean; color: string }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <circle cx="7" cy="5" r="2.5" stroke="white" strokeWidth="1.5" />
-      <path d="M2 12c0-2.761 2.239-5 5-5s5 2.239 5 5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      style={{ transform: flipped ? "rotate(180deg)" : "none" }}
+    >
+      <path
+        d="M7 22V11M2 13v7a2 2 0 002 2h11.172a2 2 0 001.964-1.636l1.447-8A2 2 0 0016.62 10H13V5a2 2 0 00-2-2 1 1 0 00-1 1v1L8 9H7"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
+  );
+}
+
+function FeedbackButton({
+  type,
+  active,
+  onClick,
+}: {
+  type: "up" | "down";
+  active: boolean;
+  onClick: () => void;
+}) {
+  const activeColor = type === "up" ? "#1F6437" : "#DA291C";
+  const borderColor = active ? activeColor : "#ADADAD";
+  return (
+    <button
+      onClick={onClick}
+      aria-label={type === "up" ? "Thumbs up" : "Thumbs down"}
+      aria-pressed={active}
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: "50%",
+        border: `1px solid ${borderColor}`,
+        background: "white",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        padding: 0,
+        flexShrink: 0,
+        transition: "border-color 0.15s",
+      }}
+    >
+      <ThumbSVG flipped={type === "down"} color={active ? activeColor : "#ADADAD"} />
+    </button>
+  );
+}
+
+type FeedbackState = "up" | "down" | null;
+
+export function InsightBanner({ text }: InsightBannerProps) {
+  const [open, setOpen] = useState(true);
+  const [feedback, setFeedback] = useState<FeedbackState>(null);
+
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+
+  return (
+    <div style={{
+      background: "#F9F9F9",
+      borderRadius: 4,
+      padding: 16,
+      display: "flex",
+      flexDirection: "column",
+      gap: 16,
+    }}>
+      {/* Header row — title + collapse toggle */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+        <p style={{
+          fontSize: 14,
+          fontWeight: 700,
+          color: "#292929",
+          lineHeight: "16px",
+          letterSpacing: "-0.15px",
+          margin: 0,
+          flex: 1,
+          minWidth: 0,
+        }}>
+          Key Headlines
+        </p>
+        <button
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? "Collapse" : "Expand"}
+          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}
+        >
+          <ChevronIcon open={open} />
+        </button>
+      </div>
+
+      {/* Collapsible content */}
+      {open && (
+        <>
+          {/* Bullet list */}
+          <ul style={{
+            margin: 0,
+            paddingLeft: 21,
+            fontSize: 14,
+            fontWeight: 400,
+            color: "#292929",
+            lineHeight: "16px",
+            letterSpacing: "-0.15px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}>
+            {lines.map((line, i) => (
+              <li key={i}>
+                <span style={{ lineHeight: "16px" }}>{line}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Feedback row */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, width: "100%" }}>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <FeedbackButton
+                type="up"
+                active={feedback === "up"}
+                onClick={() => setFeedback((f) => (f === "up" ? null : "up"))}
+              />
+              <FeedbackButton
+                type="down"
+                active={feedback === "down"}
+                onClick={() => setFeedback((f) => (f === "down" ? null : "down"))}
+              />
+            </div>
+            <p style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#292929",
+              lineHeight: "16px",
+              letterSpacing: "-0.15px",
+              margin: 0,
+              flex: 1,
+            }}>
+              This is a beta version of our Key Headlines. We would love to get your feedback.
+            </p>
+          </div>
+        </>
+      )}
+    </div>
   );
 }

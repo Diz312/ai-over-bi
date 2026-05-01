@@ -58,7 +58,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         viz_type="kpi_card",
         component_name="KPICard",
         payload_class=KPICardPayload,
-        description="Single metric summary card with optional delta badge and sparkline trend.",
+        description="Single metric summary card with optional delta and sparkline trend.",
         when_to_use="Headline metric overview. Use 3–4 kpi_cards in a row for a summary; one alone for a single hero metric.",
         props_summary="{ title, value, unit?, value_format?, delta?: {value, type, direction, label?}, trend?: [{period, value}], subtitle? }",
     ),
