@@ -1,8 +1,21 @@
 "use client";
 
 import type { BarChartProps } from "@/types/viz";
-import { formatValue, makeTick } from "@/lib/format";
-import { CHART_COLORS } from "@/lib/chartColors";
+import {
+  BORDER_CARD,
+  BORDER_CHART_GRID,
+  BRAND_WHITE,
+  CHART_COLORS,
+  formatValue,
+  makeTick,
+  warnIfChartPaletteOverflow,
+  SECONDARY_BLACK,
+  SECONDARY_DARK_GREY,
+  SHADOW_CARD,
+  TYPO_GRAPH_LABEL,
+  TYPO_GRAPH_LABEL_BOLD,
+  TYPO_P1_BOLD,
+} from "@/lib/theme";
 import {
   BarChart as ReBarChart,
   Bar,
@@ -35,8 +48,7 @@ function compactNumber(value: number): string {
 }
 
 // Custom SVG label rendered above each bar.
-// Figma spec: 10px Regular, #000000, letter-spacing -0.1875px, centered, 2px gap above bar.
-// Recharts passes {x, y, width, value} as props when used as a content component.
+// Figma spec: 10px Regular, SECONDARY_BLACK, letter-spacing -0.1875px, centered, 2px gap above bar.
 function BarValueLabel(props: {
   x?: number;
   y?: number;
@@ -52,7 +64,7 @@ function BarValueLabel(props: {
       y={y}
       dy={-4}
       textAnchor="middle"
-      fill="#000000"
+      fill={SECONDARY_BLACK}
       fontSize={10}
       letterSpacing="-0.1875"
       fontFamily="inherit"
@@ -70,7 +82,7 @@ interface RechartsTickProps {
   payload?: { value: string | number };
 }
 
-// Figma spec: 10px Regular, #6F6F6F, letter-spacing -0.1875px
+// Figma spec: 10px Regular, SECONDARY_DARK_GREY, letter-spacing -0.1875px
 function CategoryTick({ x = 0, y = 0, payload, rotate }: RechartsTickProps & { rotate?: boolean }) {
   return (
     <g transform={`translate(${x},${y})`}>
@@ -80,7 +92,7 @@ function CategoryTick({ x = 0, y = 0, payload, rotate }: RechartsTickProps & { r
         dy={rotate ? 10 : 12}
         textAnchor={rotate ? "end" : "middle"}
         transform={rotate ? "rotate(-35)" : undefined}
-        fill="#6F6F6F"
+        fill={SECONDARY_DARK_GREY}
         fontSize={10}
         letterSpacing="-0.1875"
         fontFamily="inherit"
@@ -115,20 +127,20 @@ function CustomTooltip({ active, payload, label, value_format }: TooltipProps) {
   const entries = [...payload].filter((e) => e.dataKey !== TOTAL_KEY).reverse();
   return (
     <div style={{
-      background: "#FFFFFF",
-      border: "1px solid #D6D6D6",
+      background: BRAND_WHITE,
+      border: BORDER_CARD,
       borderRadius: 4,
       padding: "8px 12px",
-      boxShadow: "0px 1px 10px 0px rgba(0,0,0,0.08)",
+      boxShadow: SHADOW_CARD,
     }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#292929", marginBottom: 6, letterSpacing: "-0.1875px" }}>
+      <div style={{ ...TYPO_GRAPH_LABEL_BOLD, marginBottom: 6 }}>
         {header}
       </div>
       {entries.map((entry) => (
         <div key={entry.dataKey} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
           <div style={{ width: 8, height: 8, borderRadius: "100px", background: entry.color, flexShrink: 0 }} />
-          <span style={{ fontSize: 11, color: "#6F6F6F", letterSpacing: "-0.1875px" }}>{entry.name}</span>
-          <span style={{ fontSize: 11, color: "#292929", fontWeight: 700, marginLeft: "auto", paddingLeft: 12, letterSpacing: "-0.1875px" }}>
+          <span style={TYPO_GRAPH_LABEL}>{entry.name}</span>
+          <span style={{ ...TYPO_GRAPH_LABEL_BOLD, marginLeft: "auto", paddingLeft: 12 }}>
             {formatValue(entry.value, value_format ?? "number")}
           </span>
         </div>
@@ -138,8 +150,7 @@ function CustomTooltip({ active, payload, label, value_format }: TooltipProps) {
 }
 
 // ── Legend ────────────────────────────────────────────────────────────────────
-// Figma spec: 8px pill dots (border-[0.1px]), gap-[4px] dot→label, gap-[20px] between items,
-// Speedee Regular 11px #292929 leading-[14px] tracking-[-0.1875px]
+// Figma spec: 8px pill dots (border-[0.1px]), gap-[4px] dot→label, gap-[20px] between items.
 
 function SeriesLegend({ series }: { series: BarChartProps["series"] }) {
   return (
@@ -156,7 +167,12 @@ function SeriesLegend({ series }: { series: BarChartProps["series"] }) {
               border: `0.1px solid ${color}`,
               flexShrink: 0,
             }} />
-            <span style={{ fontSize: 11, color: "#292929", lineHeight: "14px", letterSpacing: "-0.1875px", whiteSpace: "nowrap" }}>
+            <span style={{
+              ...TYPO_GRAPH_LABEL,
+              color: SECONDARY_BLACK,
+              lineHeight: "14px",
+              whiteSpace: "nowrap",
+            }}>
               {s.label}
             </span>
           </div>
@@ -178,6 +194,8 @@ export function BarChart({
   x_axis_label,
   y_axis_label,
 }: BarChartProps) {
+  warnIfChartPaletteOverflow("BarChart", series.length);
+
   // "vertical" in contract = bars rise up → Recharts layout="horizontal"
   // "horizontal" in contract = bars extend right → Recharts layout="vertical"
   const horizontalBars = layout === "horizontal";
@@ -196,23 +214,35 @@ export function BarChart({
   const longestLabelLen = Math.max(4, ...data.map((d) => String(d[CATEGORY_KEY] ?? "").length));
   const xTickRotated = !horizontalBars && longestLabelLen > 6;
 
-  // Figma chart area height: 222px total (200px plot + 22px axis labels).
-  // Add 20px top clearance for bar labels → 260px works well responsively.
+  // ── Bar thickness ───────────────────────────────────────────────────────────
+  // Explicit pixel sizes for legibility — independent of category count.
+  // Vertical bars (rising) cap at MAX_SIZE so they don't get unwieldy with few categories.
+  // Horizontal bars use a fixed BAR_SIZE so each row reads at consistent thickness.
+  const VERTICAL_BAR_MAX_SIZE  = 48;
+  const HORIZONTAL_BAR_SIZE    = 32;
+  const HORIZONTAL_ROW_GAP     = 12;  // pixel gap between rows in horizontal mode
+
+  // ── Y-axis label space reservation ──────────────────────────────────────────
+  // When y_axis_label is provided, reserve extra width so the rotated label
+  // doesn't overlap the right-aligned tick values.
+  const Y_LABEL_RESERVE = y_axis_label ? 24 : 0;
+
+  // Chart height — for horizontal bars, sized to fit explicit BAR_SIZE × row count.
   const chartHeight = horizontalBars
-    ? Math.max(280, data.length * 36 + 60)
+    ? Math.max(280, data.length * (HORIZONTAL_BAR_SIZE + HORIZONTAL_ROW_GAP) + 60)
     : xTickRotated ? 320 : 260;
 
-  // Figma Y-axis area: 46px total (8.5px rotated label + gap + right-aligned tick labels).
+  // Y-axis width — base size + label reserve + (in horizontal mode) tick label fit.
   const yAxisWidth = horizontalBars
-    ? Math.min(180, Math.max(80, longestLabelLen * 7))
-    : 46;
+    ? Math.min(220, Math.max(80, longestLabelLen * 7) + Y_LABEL_RESERVE)
+    : 46 + Y_LABEL_RESERVE;
 
   const bottomMargin = xTickRotated ? 48 : 20;
 
   return (
     <div style={{
-      background: "#FFFFFF",
-      border: "1px solid #D6D6D6",
+      background: BRAND_WHITE,
+      border: BORDER_CARD,
       borderRadius: 4,
       padding: 12,
       display: "flex",
@@ -221,14 +251,7 @@ export function BarChart({
       overflow: "hidden",
     }}>
       {title && (
-        <p style={{
-          fontSize: 16,
-          fontWeight: 700,
-          color: "#292929",
-          lineHeight: "20px",
-          letterSpacing: "-0.15px",
-          margin: 0,
-        }}>
+        <p style={{ ...TYPO_P1_BOLD, margin: 0 }}>
           {title}
         </p>
       )}
@@ -240,14 +263,15 @@ export function BarChart({
             layout={rechartsLayout}
             // top:20 provides clearance for bar value labels (Figma gap-[2px] + label h-[12px])
             margin={{ top: 20, right: 16, bottom: bottomMargin, left: 4 }}
-            // Gap scales with density: fewer bars → tighter gap so they fill the width,
-            // more bars → wider gap to stay legible.
-            barCategoryGap={data.length >= 12 ? "60%" : data.length >= 7 ? "50%" : "35%"}
+            // Vertical mode uses category gap to space bar groups; explicit
+            // maxBarSize on the Bar caps width when categories are few.
+            // Horizontal mode bypasses this — barSize is set explicitly per Bar.
+            barCategoryGap={data.length >= 12 ? "30%" : data.length >= 7 ? "20%" : "15%"}
             barGap={2}
           >
             <CartesianGrid
               strokeDasharray=""
-              stroke="#E8E8E8"
+              stroke={BORDER_CHART_GRID}
               horizontal={!horizontalBars}
               vertical={horizontalBars}
             />
@@ -256,13 +280,13 @@ export function BarChart({
               type={horizontalBars ? "number" : "category"}
               dataKey={horizontalBars ? undefined : CATEGORY_KEY}
               tickFormatter={horizontalBars ? tickFmt : undefined}
-              axisLine={{ stroke: "#E8E8E8" }}
+              axisLine={{ stroke: BORDER_CHART_GRID }}
               tickLine={false}
               interval={0}
               height={!horizontalBars && xTickRotated ? 48 : 24}
               tick={
                 horizontalBars
-                  ? { fontSize: 10, fill: "#6F6F6F", letterSpacing: "-0.1875" }
+                  ? { fontSize: 10, fill: SECONDARY_DARK_GREY, letterSpacing: "-0.1875" }
                   : <CategoryTick rotate={xTickRotated} />
               }
             >
@@ -271,7 +295,7 @@ export function BarChart({
                   value={x_axis_label}
                   position="insideBottom"
                   offset={xTickRotated ? -40 : -8}
-                  style={{ fill: "#6F6F6F", fontSize: 11, letterSpacing: "-0.1875px" }}
+                  style={{ fill: SECONDARY_DARK_GREY, fontSize: 11, letterSpacing: "-0.1875px" }}
                 />
               ) : null}
             </XAxis>
@@ -282,8 +306,8 @@ export function BarChart({
               tickFormatter={horizontalBars ? undefined : tickFmt}
               tick={
                 horizontalBars
-                  ? { fontSize: 10, fill: "#292929", letterSpacing: "-0.1875" }
-                  : { fontSize: 10, fill: "#6F6F6F", letterSpacing: "-0.1875" }
+                  ? { fontSize: 10, fill: SECONDARY_BLACK, letterSpacing: "-0.1875" }
+                  : { fontSize: 10, fill: SECONDARY_DARK_GREY, letterSpacing: "-0.1875" }
               }
               axisLine={false}
               tickLine={false}
@@ -291,12 +315,11 @@ export function BarChart({
               interval={horizontalBars ? 0 : undefined}
             >
               {y_axis_label ? (
-                // Figma: rotated Y-axis title in #292929 (darker than the grey tick labels)
                 <Label
                   value={y_axis_label}
                   angle={-90}
                   position="insideLeft"
-                  style={{ fill: "#292929", fontSize: 11, letterSpacing: "-0.1875px", textAnchor: "middle" }}
+                  style={{ fill: SECONDARY_BLACK, fontSize: 11, letterSpacing: "-0.1875px", textAnchor: "middle" }}
                 />
               ) : null}
             </YAxis>
@@ -327,6 +350,11 @@ export function BarChart({
                   radius={radius}
                   stackId={stacked ? "stack" : undefined}
                   isAnimationActive={false}
+                  // Bar thickness — explicit per orientation:
+                  //   vertical bars (rising up): cap width when few categories
+                  //   horizontal bars (extending right): fixed pixel height per row
+                  maxBarSize={!horizontalBars ? VERTICAL_BAR_MAX_SIZE : undefined}
+                  barSize={horizontalBars ? HORIZONTAL_BAR_SIZE : undefined}
                 >
                   {/* Stacked: show total above the top segment (last series only).
                       Figma: text-[10px] text-black tracking-[-0.1875px] gap-[2px] above bar. */}

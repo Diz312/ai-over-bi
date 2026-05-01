@@ -62,10 +62,43 @@ export const BACKFILL_HIGHLIGHT   = "#FFF8E7";                       // Backfill
 // ── Chart color sequence ──────────────────────────────────────────────────────
 // Ordered palette for multi-series charts (bar, line, area, pie).
 // Index position is the sole authority — agents never supply colors.
+//
+// Palette size is 8. Series indices are taken via `idx % CHART_COLORS.length`,
+// so series 8+ silently cycle. Each chart component logs a dev-mode warning
+// when the series count exceeds the palette length so collisions are visible.
+//
+// BRAND_RED is intentionally excluded — it carries semantic meaning ("negative"
+// direction in KPICard / ComparisonCard) and using it as a chart series color
+// would conflict with that signal.
 
 export const CHART_COLORS: string[] = [
+  // Charts & Graphs (designed for chart use)
   CHART_BEIGE,        // series 0
   CHART_LIGHT_BLUE,   // series 1
   CHART_LIGHT_GREEN,  // series 2
   CHART_DARK_BLUE,    // series 3
+  // Extended palette (drawn from brand + secondary tokens, no semantic conflicts)
+  BRAND_GOLD,         // series 4 — McDonald's Gold
+  SECONDARY_FUSCHIA,  // series 5 — Fuschia, strong magenta
+  BRAND_GREEN,        // series 6 — McDonald's Green (dark, distinct from CHART_LIGHT_GREEN)
+  ACCENT_GOLD,        // series 7 — Accent Gold (accessible, slightly muted)
 ];
+
+/**
+ * Dev-mode warning for charts that exceed the palette size.
+ *
+ * Call once per render from the top of a chart component. Only logs in
+ * non-production builds and only when `seriesCount > CHART_COLORS.length`.
+ * Silent in production.
+ *
+ * @param componentName  e.g. "BarChart" — included in the warning prefix.
+ * @param seriesCount    number of series (or pie slices) being rendered.
+ */
+export function warnIfChartPaletteOverflow(componentName: string, seriesCount: number): void {
+  if (process.env.NODE_ENV === "production") return;
+  if (seriesCount <= CHART_COLORS.length) return;
+  console.warn(
+    `[${componentName}] ${seriesCount} series exceeds chart palette size (${CHART_COLORS.length}). ` +
+    `Series ${CHART_COLORS.length}+ will reuse colors via modulo cycling.`
+  );
+}

@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import type { DataTableProps, DataTableColumn } from "@/types/viz";
-import { formatValue } from "@/lib/format";
+import {
+  BACKFILL_HIGHLIGHT,
+  BORDER_CARD,
+  BRAND_WHITE,
+  formatValue,
+  SECONDARY_BLACK,
+  SECONDARY_GREY,
+  TYPO_GRAPH_LABEL,
+  TYPO_P1_BOLD,
+  TYPO_P2_BOLD,
+} from "@/lib/theme";
 
 function cellFormat(value: number | string, col: DataTableColumn): string {
   if (typeof value === "string") return value;
@@ -14,11 +24,10 @@ function cellFormat(value: number | string, col: DataTableColumn): string {
   }
 }
 
-// Figma SortIcons component: h-[15.5px], gap-[8px] from header label.
-// Default: both chevrons in #ADADAD. Active: active direction #292929, other #ADADAD.
+// Figma SortIcons: default both chevrons in SECONDARY_GREY; active direction in SECONDARY_BLACK.
 function SortChevrons({ active, dir }: { active: boolean; dir?: "asc" | "desc" }) {
-  const up   = active && dir === "asc"  ? "#292929" : "#ADADAD";
-  const down = active && dir === "desc" ? "#292929" : "#ADADAD";
+  const up   = active && dir === "asc"  ? SECONDARY_BLACK : SECONDARY_GREY;
+  const down = active && dir === "desc" ? SECONDARY_BLACK : SECONDARY_GREY;
   return (
     <svg
       width="9"
@@ -59,21 +68,17 @@ export function DataTable({ title, columns, rows, caption }: DataTableProps) {
 
   return (
     <div style={{
-      border: "1px solid #D6D6D6",
+      border: BORDER_CARD,
       borderRadius: 4,
       overflow: "hidden",
     }}>
-      {/* Optional title — P1 Bold token: 16px Bold #292929 */}
+      {/* Optional title — P1 Bold */}
       {title && (
         <div style={{
+          ...TYPO_P1_BOLD,
           padding: "16px 16px 12px",
-          borderBottom: "1px solid #D6D6D6",
-          fontSize: 16,
-          fontWeight: 700,
-          color: "#292929",
-          lineHeight: "20px",
-          letterSpacing: "-0.15px",
-          background: "#FFFFFF",
+          borderBottom: BORDER_CARD,
+          background: BRAND_WHITE,
         }}>
           {title}
         </div>
@@ -88,24 +93,17 @@ export function DataTable({ title, columns, rows, caption }: DataTableProps) {
                   key={col.key}
                   onClick={() => handleSort(col.key)}
                   style={{
-                    // Figma: P2 Bold — 14px Bold, #292929, lh 16px, ls -0.15px
+                    ...TYPO_P2_BOLD,
                     padding: "8px 16px",
                     textAlign: col.align ?? (col.type !== "string" ? "right" : "left"),
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: "#292929",
-                    lineHeight: "16px",
-                    letterSpacing: "-0.15px",
                     whiteSpace: "nowrap",
-                    background: "#FFFFFF",
-                    // Figma: border-b border-r border-[#d6d6d6] on each header cell
-                    borderBottom: "1px solid #D6D6D6",
-                    borderRight: ci < lastColIdx ? "1px solid #D6D6D6" : "none",
+                    background: BRAND_WHITE,
+                    borderBottom: BORDER_CARD,
+                    borderRight: ci < lastColIdx ? BORDER_CARD : "none",
                     cursor: "pointer",
                     userSelect: "none",
                   }}
                 >
-                  {/* Figma: label + SortIcons with gap-[8px] */}
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                     {col.label}
                     <SortChevrons
@@ -120,38 +118,34 @@ export function DataTable({ title, columns, rows, caption }: DataTableProps) {
           <tbody>
             {sorted.map((row, ri) => {
               const isLast = ri === sorted.length - 1;
-              // Figma: first row (pinned total/summary) gets Backfill Highlight #FFF8E7;
-              // all other rows are plain white — no alternating stripes.
-              const rowBg = ri === 0 ? "#FFF8E7" : "#FFFFFF";
+              // Figma: first row (pinned total/summary) gets Backfill Highlight; all
+              // other rows are plain white — no alternating stripes.
+              const rowBg = ri === 0 ? BACKFILL_HIGHLIGHT : BRAND_WHITE;
 
               return (
                 <tr key={ri}>
                   {columns.map((col, ci) => {
                     const raw = row[col.key];
                     const display = raw != null ? cellFormat(raw, col) : "—";
-                    const isFirstCol = ci === 0;
 
                     return (
                       <td
                         key={col.key}
                         style={{
-                          // Figma:
-                          //   First column — P2 Regular: 14px, #292929, lh 16px, ls -0.15px
-                          //   Metric columns — Big Number: 20px Regular, #292929, lh 24px, ls -0.1875px
+                          // 12px tabular-nums — smaller than P2 to fit dense data tables.
                           padding: "8px 16px",
                           minHeight: 40,
                           textAlign: col.align ?? (col.type !== "string" ? "right" : "left"),
                           fontSize: 12,
                           fontWeight: 400,
-                          color: "#292929",
+                          color: SECONDARY_BLACK,
                           lineHeight: "16px",
                           letterSpacing: "-0.15px",
                           whiteSpace: "nowrap",
                           fontVariantNumeric: "tabular-nums",
                           background: rowBg,
-                          // Figma: border-b border-r border-[#d6d6d6] on each data cell
-                          borderBottom: !isLast ? "1px solid #D6D6D6" : "none",
-                          borderRight: ci < lastColIdx ? "1px solid #D6D6D6" : "none",
+                          borderBottom: !isLast ? BORDER_CARD : "none",
+                          borderRight: ci < lastColIdx ? BORDER_CARD : "none",
                         }}
                       >
                         {display}
@@ -165,17 +159,14 @@ export function DataTable({ title, columns, rows, caption }: DataTableProps) {
         </table>
       </div>
 
-      {/* Caption — Graph Labels token: 11px Regular, #6F6F6F, ls -0.1875px */}
+      {/* Caption — Graph Label */}
       {caption && (
         <div style={{
-          padding: "8px 16px 12px",
-          fontSize: 11,
-          fontWeight: 400,
-          color: "#6F6F6F",
+          ...TYPO_GRAPH_LABEL,
           lineHeight: "14px",
-          letterSpacing: "-0.1875px",
-          borderTop: "1px solid #D6D6D6",
-          background: "#FFFFFF",
+          padding: "8px 16px 12px",
+          borderTop: BORDER_CARD,
+          background: BRAND_WHITE,
         }}>
           {caption}
         </div>

@@ -1,16 +1,30 @@
 "use client";
 
 import type { InsightBannerProps, InsightItem } from "@/types/viz";
+import {
+  ACCENT_LIGHT_BLUE,
+  BACKFILL_BLUE,
+  BACKFILL_GREEN,
+  BACKFILL_RED,
+  BORDER_CARD,
+  BRAND_GREEN,
+  BRAND_RED,
+  BRAND_WHITE,
+  SECONDARY_BLACK,
+  TYPO_P1_BOLD,
+  TYPO_P1_REGULAR,
+  TYPO_P2_REGULAR,
+} from "@/lib/theme";
 
 // ── Sentiment → Figma design tokens ──────────────────────────────────────────
-// positive: Backfill Green #F4F7F5 + McDonald's Green border #264F36
-// negative: Backfill Red   #FDF2F2 + McDonald's Red border  #D90007
-// neutral:  Backfill Blue  rgba(56AFD1, 10%) over white + Light Blue border #A0D8ED
+// positive: Backfill Green + McDonald's Green border
+// negative: Backfill Red   + McDonald's Red border
+// neutral:  Backfill Blue  + Accent Light Blue border
 
 const SENTIMENT: Record<InsightItem["sentiment"], { background: string; border: string }> = {
-  positive: { background: "#F4F7F5",                   border: "#264F36" },
-  negative: { background: "#FDF2F2",                   border: "#D90007" },
-  neutral:  { background: "rgba(86, 175, 209, 0.1)",   border: "#A0D8ED" },
+  positive: { background: BACKFILL_GREEN, border: BRAND_GREEN },
+  negative: { background: BACKFILL_RED,   border: BRAND_RED },
+  neutral:  { background: BACKFILL_BLUE,  border: ACCENT_LIGHT_BLUE },
 };
 
 // ── Individual insight card ───────────────────────────────────────────────────
@@ -27,53 +41,30 @@ function InsightCard({ item }: { item: InsightItem }) {
       flexDirection: "column",
       gap: 5,
     }}>
-      {/* Headline — P1 Bold: 16px Bold #292929 lh 20px ls -0.15px */}
-      <p style={{
-        fontSize: 16,
-        fontWeight: 700,
-        color: "#292929",
-        lineHeight: "20px",
-        letterSpacing: "-0.15px",
-        margin: 0,
-      }}>
+      {/* Headline — P1 Bold */}
+      <p style={{ ...TYPO_P1_BOLD, margin: 0 }}>
         {item.headline}
       </p>
 
       {/* Body + why + source */}
       <div>
-        {/* Body — P1: 16px Regular #292929 lh 20px ls -0.15px */}
-        <p style={{
-          fontSize: 16,
-          fontWeight: 400,
-          color: "#292929",
-          lineHeight: "20px",
-          letterSpacing: "-0.15px",
-          margin: 0,
-          marginBottom: 16,
-        }}>
+        {/* Body — P1 Regular */}
+        <p style={{ ...TYPO_P1_REGULAR, margin: 0, marginBottom: 16 }}>
           {item.body}
         </p>
 
-        {/* Why this matters — P2: 14px Regular #292929 lh 16px ls -0.1875px */}
+        {/* Why this matters — P2 Regular */}
         {item.why && (
-          <p style={{
-            fontSize: 14,
-            fontWeight: 400,
-            color: "#292929",
-            lineHeight: "16px",
-            letterSpacing: "-0.1875px",
-            margin: 0,
-            marginBottom: 16,
-          }}>
+          <p style={{ ...TYPO_P2_REGULAR, margin: 0, marginBottom: 16 }}>
             {item.why}
           </p>
         )}
 
-        {/* Source line — 10px Regular #292929 lh 12px ls -0.1875px ALL CAPS */}
+        {/* Source line — 10px Regular ALL CAPS (one-off, no shared token) */}
         <p style={{
           fontSize: 10,
           fontWeight: 400,
-          color: "#292929",
+          color: SECONDARY_BLACK,
           lineHeight: "12px",
           letterSpacing: "-0.1875px",
           margin: 0,
@@ -92,8 +83,8 @@ export function InsightBanner({ insights }: InsightBannerProps) {
   if (!insights?.length) return null;
   return (
     <div style={{
-      background: "#FFFFFF",
-      border: "1px solid #D6D6D6",
+      background: BRAND_WHITE,
+      border: BORDER_CARD,
       borderRadius: 4,
       padding: 16,
       display: "flex",

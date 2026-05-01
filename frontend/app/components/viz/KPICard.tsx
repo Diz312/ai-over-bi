@@ -1,13 +1,25 @@
 "use client";
 
 import type { KPICardProps, TrendPoint, DeltaDirection } from "@/types/viz";
-import { formatValue } from "@/lib/format";
+import {
+  BACKFILL_GREEN,
+  BRAND_RED,
+  formatValue,
+  SECONDARY_BLACK,
+  SECONDARY_DARK_GREY,
+  SECONDARY_LINK_BLUE,
+  SEMANTIC_SUCCESS,
+  SHADOW_CARD,
+  TYPO_GRAPH_LABEL,
+  TYPO_P1_BOLD,
+  TYPO_P2_REGULAR,
+} from "@/lib/theme";
 import { LineChart, Line, XAxis, ResponsiveContainer } from "recharts";
 
 const DIRECTION_COLORS = {
-  up:   "#1F6437",
-  down: "#DA291C",
-  flat: "#6B6B6B",
+  up:   SEMANTIC_SUCCESS,
+  down: BRAND_RED,
+  flat: SECONDARY_DARK_GREY,
 };
 
 // Chevron pointing right; rotated via CSS to indicate direction
@@ -31,14 +43,14 @@ function DirectionArrow({ direction, color }: { direction: DeltaDirection; color
 function ChevronRight() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M6 4L10 8L6 12" stroke="#006BAE" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 4L10 8L6 12" stroke={SECONDARY_LINK_BLUE} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function Sparkline({ data }: { data: TrendPoint[] }) {
   const isPositive = data.length >= 2 && data[data.length - 1].value >= data[0].value;
-  const color = isPositive ? "#1F6437" : "#DA291C";
+  const color = isPositive ? SEMANTIC_SUCCESS : BRAND_RED;
   const PER_POINT = 34;
   const innerWidth = Math.max(200, data.length * PER_POINT);
   return (
@@ -48,7 +60,7 @@ function Sparkline({ data }: { data: TrendPoint[] }) {
           <LineChart data={data} margin={{ top: 4, bottom: 4, left: 4, right: 8 }}>
             <XAxis
               dataKey="period"
-              tick={{ fontSize: 9, fill: "#94A3B8" }}
+              tick={{ fontSize: 9, fill: SECONDARY_DARK_GREY }}
               axisLine={false}
               tickLine={false}
               interval={0}
@@ -85,7 +97,7 @@ export function KPICard({
     value_format,
   );
   const dir = delta?.direction ?? "flat";
-  const valueColor = delta ? DIRECTION_COLORS[dir] : "#292929";
+  const valueColor = delta ? DIRECTION_COLORS[dir] : SECONDARY_BLACK;
 
   const deltaText = delta
     ? delta.type === "percentage"
@@ -95,26 +107,18 @@ export function KPICard({
 
   return (
     <div style={{
-      background: "#F4F7F5",
+      background: BACKFILL_GREEN,
       borderRadius: 4,
       padding: 12,
       display: "flex",
       flexDirection: "column",
       gap: 8,
-      boxShadow: "0px 1px 10px 0px rgba(0,0,0,0.08)",
+      boxShadow: SHADOW_CARD,
       minWidth: 0,
       overflow: "hidden",
     }}>
-      {/* Title */}
-      <p style={{
-        fontSize: 16,
-        fontWeight: 700,
-        color: "#292929",
-        letterSpacing: "-0.15px",
-        lineHeight: "20px",
-        margin: 0,
-        width: "100%",
-      }}>
+      {/* Title — P1 Bold */}
+      <p style={{ ...TYPO_P1_BOLD, margin: 0, width: "100%" }}>
         {title}
       </p>
 
@@ -125,7 +129,7 @@ export function KPICard({
             {formatted}
           </span>
           {unit && value_format === "raw" && (
-            <span style={{ fontSize: 13, color: "#6B6B6B", fontWeight: 400 }}>{unit}</span>
+            <span style={{ fontSize: 13, color: SECONDARY_DARK_GREY, fontWeight: 400 }}>{unit}</span>
           )}
         </div>
 
@@ -159,12 +163,12 @@ export function KPICard({
           </div>
         )}
 
-        {/* Subtitle */}
+        {/* Subtitle — Graph Label */}
         {subtitle && (
-          <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: 2 }}>{subtitle}</div>
+          <div style={{ ...TYPO_GRAPH_LABEL, marginTop: 2 }}>{subtitle}</div>
         )}
 
-        {/* View Trend link */}
+        {/* View Trend link — P2 Regular, link blue */}
         <div style={{
           display: "flex",
           alignItems: "center",
@@ -174,14 +178,7 @@ export function KPICard({
           borderRadius: 4,
           overflow: "hidden",
         }}>
-          <span style={{
-            fontSize: 14,
-            fontWeight: 400,
-            color: "#006BAE",
-            lineHeight: "16px",
-            letterSpacing: "-0.15px",
-            whiteSpace: "nowrap",
-          }}>
+          <span style={{ ...TYPO_P2_REGULAR, color: SECONDARY_LINK_BLUE, whiteSpace: "nowrap" }}>
             View Trend
           </span>
           <ChevronRight />

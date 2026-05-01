@@ -1,13 +1,26 @@
 "use client";
 
 import type { ComparisonCardProps, DeltaDirection } from "@/types/viz";
-import { formatValue } from "@/lib/format";
+import {
+  BACKFILL_GREEN,
+  BORDER_CARD,
+  BORDER_CHART_GRID,
+  BRAND_RED,
+  formatValue,
+  SECONDARY_DARK_GREY,
+  SECONDARY_LIGHT_GREY,
+  SEMANTIC_SUCCESS,
+  SHADOW_CARD,
+  TYPO_GRAPH_LABEL,
+  TYPO_P1_BOLD,
+  TYPO_P1_REGULAR,
+} from "@/lib/theme";
 
 // Matches KPICard direction colors exactly
 const DIRECTION_COLORS: Record<DeltaDirection, string> = {
-  up:   "#1F6437",
-  down: "#DA291C",
-  flat: "#6B6B6B",
+  up:   SEMANTIC_SUCCESS,
+  down: BRAND_RED,
+  flat: SECONDARY_DARK_GREY,
 };
 
 // Reused from KPICard — chevron rotated by direction
@@ -26,10 +39,10 @@ function DirectionArrow({ direction, color }: { direction: DeltaDirection; color
   );
 }
 
-// Comparison bar — same track color as BarChart grid (#E8E8E8)
+// Comparison bar — track uses chart grid color
 function Bar({ pct, color }: { pct: number; color: string }) {
   return (
-    <div style={{ height: 4, background: "#E8E8E8", borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ height: 4, background: BORDER_CHART_GRID, borderRadius: 2, overflow: "hidden" }}>
       <div style={{
         height: "100%",
         width: `${Math.min(100, Math.max(0, pct))}%`,
@@ -62,37 +75,23 @@ export function ComparisonCard({
 
   return (
     <div style={{
-      background: "#F4F7F5",
+      background: BACKFILL_GREEN,
       borderRadius: 4,
       padding: 12,
       display: "flex",
       flexDirection: "column",
       gap: 8,
-      boxShadow: "0px 1px 10px 0px rgba(0,0,0,0.08)",
+      boxShadow: SHADOW_CARD,
       minWidth: 0,
       overflow: "hidden",
     }}>
-      {/* Title — P1 Bold: 16px Bold #292929 lh 20px ls -0.15px (matches KPICard) */}
-      <p style={{
-        fontSize: 16,
-        fontWeight: 700,
-        color: "#292929",
-        lineHeight: "20px",
-        letterSpacing: "-0.15px",
-        margin: 0,
-      }}>
+      {/* Title — P1 Bold (matches KPICard) */}
+      <p style={{ ...TYPO_P1_BOLD, margin: 0 }}>
         {title}
       </p>
 
-      {/* Metric label — Graph Labels: 11px Regular #6F6F6F ls -0.1875px */}
-      <p style={{
-        fontSize: 11,
-        fontWeight: 400,
-        color: "#6F6F6F",
-        lineHeight: "14px",
-        letterSpacing: "-0.1875px",
-        margin: 0,
-      }}>
+      {/* Metric label — Graph Label */}
+      <p style={{ ...TYPO_GRAPH_LABEL, lineHeight: "14px", margin: 0 }}>
         {metric}{unit ? ` (${unit})` : ""}
       </p>
 
@@ -110,11 +109,9 @@ export function ComparisonCard({
         </span>
         {delta.label && (
           <span style={{
-            fontSize: 11,
-            fontWeight: 400,
+            ...TYPO_GRAPH_LABEL,
             color: dirColor,
             lineHeight: "14px",
-            letterSpacing: "-0.1875px",
             marginLeft: 2,
           }}>
             {delta.label}
@@ -125,7 +122,7 @@ export function ComparisonCard({
       {/* Current period */}
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <span style={{ fontSize: 11, fontWeight: 400, color: "#6F6F6F", letterSpacing: "-0.1875px" }}>
+          <span style={TYPO_GRAPH_LABEL}>
             {current.label}
           </span>
           <span style={{ fontSize: 24, fontWeight: 700, color: dirColor, letterSpacing: "-0.02em", lineHeight: 1 }}>
@@ -138,27 +135,24 @@ export function ComparisonCard({
       {/* Prior period */}
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <span style={{ fontSize: 11, fontWeight: 400, color: "#6F6F6F", letterSpacing: "-0.1875px" }}>
+          <span style={TYPO_GRAPH_LABEL}>
             {prior.label}
           </span>
-          <span style={{ fontSize: 16, fontWeight: 400, color: "#6F6F6F", letterSpacing: "-0.15px", lineHeight: "20px" }}>
+          <span style={{ ...TYPO_P1_REGULAR, color: SECONDARY_DARK_GREY }}>
             {formatValue(prior.value, value_format)}
           </span>
         </div>
-        <Bar pct={priorPct} color="#D6D6D6" />
+        <Bar pct={priorPct} color={SECONDARY_LIGHT_GREY} />
       </div>
 
-      {/* Metric-level insight — Graph Labels: 11px Regular #6F6F6F ls -0.1875px */}
+      {/* Metric-level insight — Graph Label */}
       {insight && (
         <p style={{
-          fontSize: 11,
-          fontWeight: 400,
-          color: "#6F6F6F",
+          ...TYPO_GRAPH_LABEL,
           lineHeight: "14px",
-          letterSpacing: "-0.1875px",
           margin: 0,
           paddingTop: 8,
-          borderTop: "1px solid #D6D6D6",
+          borderTop: BORDER_CARD,
         }}>
           {insight}
         </p>

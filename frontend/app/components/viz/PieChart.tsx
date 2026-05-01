@@ -1,8 +1,21 @@
 "use client";
 
 import type { PieChartProps } from "@/types/viz";
-import { formatValue } from "@/lib/format";
-import { CHART_COLORS } from "@/lib/chartColors";
+import {
+  BORDER_CARD,
+  BRAND_WHITE,
+  CHART_COLORS,
+  formatValue,
+  warnIfChartPaletteOverflow,
+  SECONDARY_BLACK,
+  SECONDARY_IVORY,
+  SECONDARY_LINK_BLUE,
+  SHADOW_CARD,
+  TYPO_GRAPH_LABEL,
+  TYPO_GRAPH_LABEL_BOLD,
+  TYPO_P1_BOLD,
+  TYPO_P2_REGULAR,
+} from "@/lib/theme";
 import {
   PieChart as RePieChart,
   Pie,
@@ -15,7 +28,7 @@ import {
 function ChevronRight() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M6 4L10 8L6 12" stroke="#006BAE" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 4L10 8L6 12" stroke={SECONDARY_LINK_BLUE} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -32,20 +45,20 @@ function CustomTooltip({ active, payload, value_format }: {
   const pct = entry.payload?.percent;
   return (
     <div style={{
-      background: "#FFFFFF",
-      border: "1px solid #D6D6D6",
+      background: BRAND_WHITE,
+      border: BORDER_CARD,
       borderRadius: 4,
       padding: "8px 12px",
-      boxShadow: "0px 1px 10px 0px rgba(0,0,0,0.08)",
+      boxShadow: SHADOW_CARD,
     }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#292929", marginBottom: 4, letterSpacing: "-0.1875px" }}>
+      <div style={{ ...TYPO_GRAPH_LABEL_BOLD, marginBottom: 4 }}>
         {entry.name}
       </div>
-      <div style={{ fontSize: 11, color: "#292929", fontWeight: 700, letterSpacing: "-0.1875px" }}>
+      <div style={TYPO_GRAPH_LABEL_BOLD}>
         {formatValue(entry.value, value_format ?? "number")}
       </div>
       {pct != null && (
-        <div style={{ fontSize: 11, color: "#6F6F6F", marginTop: 2, letterSpacing: "-0.1875px" }}>
+        <div style={{ ...TYPO_GRAPH_LABEL, marginTop: 2 }}>
           {`${(pct * 100).toFixed(1)}%`}
         </div>
       )}
@@ -61,31 +74,25 @@ export function PieChart({
   value_format = "number",
   inner_radius = 0,
 }: PieChartProps) {
+  warnIfChartPaletteOverflow("PieChart", data.length);
   const total = data.reduce((sum, d) => sum + d.value, 0);
   const PIE_SIZE = 180;
   const outerRadius = 80;
 
   return (
     <div style={{
-      background: "#F9F9F9",
+      background: SECONDARY_IVORY,
       borderRadius: 4,
       padding: 12,
       display: "flex",
       flexDirection: "column",
       gap: 16,
-      boxShadow: "0px 1px 10px 0px rgba(0,0,0,0.08)",
+      boxShadow: SHADOW_CARD,
       overflow: "hidden",
     }}>
-      {/* Title — P1 Bold: 16px Bold #292929 lh 20px ls -0.15px */}
+      {/* Title — P1 Bold */}
       {title && (
-        <p style={{
-          fontSize: 16,
-          fontWeight: 700,
-          color: "#292929",
-          lineHeight: "20px",
-          letterSpacing: "-0.15px",
-          margin: 0,
-        }}>
+        <p style={{ ...TYPO_P1_BOLD, margin: 0 }}>
           {title}
         </p>
       )}
@@ -135,11 +142,9 @@ export function PieChart({
                     flexShrink: 0,
                   }} />
                   <span style={{
-                    fontSize: 11,
-                    fontWeight: 400,
-                    color: "#292929",
+                    ...TYPO_GRAPH_LABEL,
+                    color: SECONDARY_BLACK,
                     lineHeight: "14px",
-                    letterSpacing: "-0.1875px",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -150,7 +155,7 @@ export function PieChart({
                 <span style={{
                   fontSize: 12,
                   fontWeight: 700,
-                  color: "#292929",
+                  color: SECONDARY_BLACK,
                   lineHeight: "14px",
                   letterSpacing: "-0.1875px",
                   flexShrink: 0,
@@ -163,21 +168,15 @@ export function PieChart({
         </div>
       </div>
 
-      {/* Footer — View Details link, border-top #D6D6D6, P2: 14px Regular #006BAE ls -0.15px */}
+      {/* Footer — View Details link, P2 Regular in link blue */}
       <div style={{
-        borderTop: "1px solid #D6D6D6",
+        borderTop: BORDER_CARD,
         paddingTop: 12,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
       }}>
-        <span style={{
-          fontSize: 14,
-          fontWeight: 400,
-          color: "#006BAE",
-          lineHeight: "16px",
-          letterSpacing: "-0.15px",
-        }}>
+        <span style={{ ...TYPO_P2_REGULAR, color: SECONDARY_LINK_BLUE }}>
           View Details
         </span>
         <ChevronRight />

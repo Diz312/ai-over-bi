@@ -1,8 +1,21 @@
 "use client";
 
 import type { AreaChartProps } from "@/types/viz";
-import { formatValue, makeTick } from "@/lib/format";
-import { CHART_COLORS } from "@/lib/chartColors";
+import {
+  BORDER_CARD,
+  BORDER_CHART_GRID,
+  BRAND_WHITE,
+  CHART_COLORS,
+  formatValue,
+  makeTick,
+  warnIfChartPaletteOverflow,
+  SECONDARY_BLACK,
+  SECONDARY_DARK_GREY,
+  SHADOW_CARD,
+  TYPO_GRAPH_LABEL,
+  TYPO_GRAPH_LABEL_BOLD,
+  TYPO_P1_BOLD,
+} from "@/lib/theme";
 import {
   AreaChart as ReAreaChart,
   Area,
@@ -36,20 +49,20 @@ function CustomTooltip({ active, payload, label, value_format }: TooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: "#FFFFFF",
-      border: "1px solid #D6D6D6",
+      background: BRAND_WHITE,
+      border: BORDER_CARD,
       borderRadius: 4,
       padding: "8px 12px",
-      boxShadow: "0px 1px 10px 0px rgba(0,0,0,0.08)",
+      boxShadow: SHADOW_CARD,
     }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#292929", marginBottom: 6, letterSpacing: "-0.1875px" }}>
+      <div style={{ ...TYPO_GRAPH_LABEL_BOLD, marginBottom: 6 }}>
         {label}
       </div>
       {[...payload].reverse().map((entry) => (
         <div key={entry.dataKey} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
           <div style={{ width: 8, height: 8, borderRadius: "100px", background: entry.color, flexShrink: 0 }} />
-          <span style={{ fontSize: 11, color: "#6F6F6F", letterSpacing: "-0.1875px" }}>{entry.name}</span>
-          <span style={{ fontSize: 11, color: "#292929", fontWeight: 700, marginLeft: "auto", paddingLeft: 12, letterSpacing: "-0.1875px" }}>
+          <span style={TYPO_GRAPH_LABEL}>{entry.name}</span>
+          <span style={{ ...TYPO_GRAPH_LABEL_BOLD, marginLeft: "auto", paddingLeft: 12 }}>
             {formatValue(entry.value, value_format ?? "number")}
           </span>
         </div>
@@ -72,7 +85,12 @@ function SeriesLegend({ series }: { series: AreaChartProps["series"] }) {
               <rect x="0" y="2" width="20" height="6" rx="1" fill={color} fillOpacity={0.2} />
               <line x1="0" y1="2" x2="20" y2="2" stroke={color} strokeWidth="2" />
             </svg>
-            <span style={{ fontSize: 11, color: "#292929", lineHeight: "14px", letterSpacing: "-0.1875px", whiteSpace: "nowrap" }}>
+            <span style={{
+              ...TYPO_GRAPH_LABEL,
+              color: SECONDARY_BLACK,
+              lineHeight: "14px",
+              whiteSpace: "nowrap",
+            }}>
               {s.label}
             </span>
           </div>
@@ -93,12 +111,13 @@ export function AreaChart({
   x_axis_label,
   y_axis_label,
 }: AreaChartProps) {
+  warnIfChartPaletteOverflow("AreaChart", series.length);
   const tickFmt = makeTick(value_format);
 
   return (
     <div style={{
-      background: "#FFFFFF",
-      border: "1px solid #D6D6D6",
+      background: BRAND_WHITE,
+      border: BORDER_CARD,
       borderRadius: 4,
       padding: 12,
       display: "flex",
@@ -107,14 +126,7 @@ export function AreaChart({
       overflow: "hidden",
     }}>
       {title && (
-        <p style={{
-          fontSize: 16,
-          fontWeight: 700,
-          color: "#292929",
-          lineHeight: "20px",
-          letterSpacing: "-0.15px",
-          margin: 0,
-        }}>
+        <p style={{ ...TYPO_P1_BOLD, margin: 0 }}>
           {title}
         </p>
       )}
@@ -139,16 +151,16 @@ export function AreaChart({
 
             <CartesianGrid
               strokeDasharray=""
-              stroke="#E8E8E8"
+              stroke={BORDER_CHART_GRID}
               horizontal={true}
               vertical={false}
             />
 
             <XAxis
               dataKey={CATEGORY_KEY}
-              axisLine={{ stroke: "#E8E8E8" }}
+              axisLine={{ stroke: BORDER_CHART_GRID }}
               tickLine={false}
-              tick={{ fontSize: 10, fill: "#6F6F6F", letterSpacing: "-0.1875" }}
+              tick={{ fontSize: 10, fill: SECONDARY_DARK_GREY, letterSpacing: "-0.1875" }}
               height={x_axis_label ? 40 : 24}
             >
               {x_axis_label ? (
@@ -156,14 +168,14 @@ export function AreaChart({
                   value={x_axis_label}
                   position="insideBottom"
                   offset={-8}
-                  style={{ fill: "#6F6F6F", fontSize: 11, letterSpacing: "-0.1875px" }}
+                  style={{ fill: SECONDARY_DARK_GREY, fontSize: 11, letterSpacing: "-0.1875px" }}
                 />
               ) : null}
             </XAxis>
 
             <YAxis
               tickFormatter={tickFmt}
-              tick={{ fontSize: 10, fill: "#6F6F6F", letterSpacing: "-0.1875" }}
+              tick={{ fontSize: 10, fill: SECONDARY_DARK_GREY, letterSpacing: "-0.1875" }}
               axisLine={false}
               tickLine={false}
               width={46}
@@ -173,14 +185,14 @@ export function AreaChart({
                   value={y_axis_label}
                   angle={-90}
                   position="insideLeft"
-                  style={{ fill: "#292929", fontSize: 11, letterSpacing: "-0.1875px", textAnchor: "middle" }}
+                  style={{ fill: SECONDARY_BLACK, fontSize: 11, letterSpacing: "-0.1875px", textAnchor: "middle" }}
                 />
               ) : null}
             </YAxis>
 
             <Tooltip
               content={<CustomTooltip value_format={value_format} />}
-              cursor={{ stroke: "#E8E8E8", strokeWidth: 1 }}
+              cursor={{ stroke: BORDER_CHART_GRID, strokeWidth: 1 }}
             />
 
             {series.map((s, idx) => {
