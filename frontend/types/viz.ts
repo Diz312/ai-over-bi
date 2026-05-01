@@ -18,6 +18,14 @@ export type ValueFormat = "number" | "currency" | "percentage" | "raw";
 export type ColumnType = "string" | "number" | "currency" | "percentage";
 export type ColumnAlign = "left" | "right" | "center";
 export type ChartLayout = "vertical" | "horizontal";
+export type InsightSentiment = "positive" | "negative" | "neutral";
+
+export interface InsightItem {
+  headline: string;
+  body: string;
+  why?: string | null;
+  sentiment: InsightSentiment;
+}
 
 export interface Delta {
   value: number;
@@ -34,7 +42,6 @@ export interface TrendPoint {
 export interface SeriesConfig {
   key: string;
   label: string;
-  color?: string | null;
 }
 
 // ── Viz component props ────────────────────────────────────────────────────────
@@ -54,6 +61,7 @@ export interface BarChartProps {
   data: Record<string, number | string>[];  // [{label: str, [seriesKey]: number}]
   series: SeriesConfig[];
   layout?: ChartLayout;
+  stacked?: boolean;
   value_format?: ValueFormat;
   x_axis_label?: string | null;
   y_axis_label?: string | null;
@@ -101,7 +109,6 @@ export interface PeriodData {
 export interface PieSlice {
   label: string;
   value: number;
-  color?: string | null;
 }
 
 export interface PieChartProps {
@@ -121,6 +128,10 @@ export interface ComparisonCardProps {
   prior: PeriodData;
   delta: Delta;
   insight?: string | null;
+}
+
+export interface InsightBannerProps {
+  insights: InsightItem[];
 }
 
 // ── Viz payloads — discriminated union ────────────────────────────────────────

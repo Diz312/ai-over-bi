@@ -31,7 +31,11 @@ CRITICAL data-shape rule for charts:
   Example WRONG shape:
     data: [{"quarter": "Q1", "net_sales": 6500000}]   ← missing "label"
 - Include a data_table alongside any chart for analyst drilldown.
-- insight should be 2–3 plain-text sentences summarising the key finding.
+- insights should be a list of 1–3 structured objects, each with:
+    headline (short title), body (2–3 sentences on what the data shows),
+    why ("Why this matters: " + business impact), and
+    sentiment ("positive" | "negative" | "neutral").
+  Pass insights=None if no narrative is appropriate.
 - Never fabricate data — only use what query tools return.
 
 {metric_display_rules}

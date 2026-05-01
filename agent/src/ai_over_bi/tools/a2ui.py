@@ -7,7 +7,7 @@ as the tool result — CopilotRuntime intercepts the a2ui_operations key and
 renders the surface without it ever reaching the LLM as plain text.
 
 Flow:
-  Agent calls render_surface(visualizations, insight)
+  Agent calls render_surface(visualizations, insights)
       → Pydantic validation
       → Build A2UI v0.9 component tree + data model
       → Return a2ui.render([createSurface, updateComponents, updateDataModel])
@@ -22,7 +22,7 @@ from google.adk.tools import ToolContext
 from pydantic import TypeAdapter, ValidationError
 
 from ai_over_bi.catalog import COMPONENT_BY_VIZ_TYPE
-from ai_over_bi.contracts import VizPayload
+from ai_over_bi.contracts import InsightItem, VizPayload
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ _viz_adapter: TypeAdapter[VizPayload] = TypeAdapter(VizPayload)  # type: ignore[
 
 def render_surface(
     visualizations: list[dict[str, Any]],
-    insight: str | None,
+    insights: list[dict[str, Any]] | None,
     tool_context: ToolContext,
 ) -> dict[str, Any]:
     """Render visualizations as an A2UI v0.9 surface and stream to the frontend.
@@ -55,15 +55,19 @@ def render_surface(
                    "Available visualizations" section (e.g. "kpi_card", "bar_chart").
       - `props`:   a dict of properties matching that viz type's schema.
 
-    The system prompt is the source of truth for which viz types are available
-    and what props each accepts — see the catalog there before constructing
-    payloads.
+    Each item in `insights` is a structured analyst insight:
+      - `headline`:  short title of the key finding (1 line, no trailing period)
+      - `body`:      2–3 plain-text sentences — what happened and which levers moved
+      - `why`:       "Why this matters: ..." — business impact with actual numbers (optional)
+      - `sentiment`: "positive" | "negative" | "neutral"
+                     positive = growth/gains/above-target
+                     negative = decline/risk/below-target
+                     neutral  = stable/mixed/informational
 
     Args:
         visualizations: List of VizPayload dicts. See system prompt for catalog.
-        insight:        Top-level analyst narrative (2–4 sentences, plain text).
-                        The "so what" — key takeaway for the business analyst.
-                        Pass None if no narrative is appropriate.
+        insights:       List of structured InsightItem dicts (see above).
+                        Pass None or [] if no narrative is appropriate.
         tool_context:   Injected by ADK — do not pass.
 
     Returns:
@@ -95,14 +99,23 @@ def render_surface(
     child_ids: list[str] = []
     components: list[dict[str, Any]] = []
 
-    # Optional insight banner — always first if present
-    if insight:
-        components.append({
-            "id": "insight-banner",
-            "component": "InsightBanner",
-            "text": insight,
-        })
-        child_ids.append("insight-banner")
+    # Optional insight banner — always first if present.
+    # Validate each InsightItem; skip malformed entries rather than failing the whole surface.
+    if insights:
+        valid_insights: list[dict[str, Any]] = []
+        for item in insights:
+            try:
+                validated_item = InsightItem.model_validate(item)
+                valid_insights.append(validated_item.model_dump(exclude_none=True))
+            except ValidationError as e:
+                logger.warning("InsightItem validation failed — skipping", extra={"errors": str(e)})
+        if valid_insights:
+            components.append({
+                "id": "insight-banner",
+                "component": "InsightBanner",
+                "insights": valid_insights,
+            })
+            child_ids.append("insight-banner")
 
     # One component per validated viz payload
     for i, viz in enumerate(validated):
@@ -143,7 +156,7 @@ def render_surface(
         extra={
             "surface_id": BI_SURFACE_ID,
             "components": len(validated),
-            "has_insight": bool(insight),
+            "has_insights": bool(insights),
             "session_id": inv.session.id,
         },
     )

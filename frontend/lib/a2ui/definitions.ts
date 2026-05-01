@@ -31,7 +31,6 @@ const trendPoint = z.object({
 const seriesConfig = z.object({
   key: z.string(),
   label: z.string(),
-  color: z.string().optional(),
 });
 
 const periodData = z.object({
@@ -107,7 +106,6 @@ export const biDefinitions = {
       data: z.array(z.object({
         label: z.string(),
         value: z.number(),
-        color: z.string().optional(),
       })),
       value_format: valueFormatNoRaw.optional(),
       show_labels: z.boolean().optional(),
@@ -145,9 +143,14 @@ export const biDefinitions = {
   },
 
   InsightBanner: {
-    description: "Top-level analyst narrative banner (2–4 sentences, plain text).",
+    description: "Analyst insight cards — one card per finding, sentiment-coded by background color.",
     props: z.object({
-      text: z.string(),
+      insights: z.array(z.object({
+        headline: z.string(),
+        body: z.string(),
+        why: z.string().optional(),
+        sentiment: z.enum(["positive", "negative", "neutral"]),
+      })),
     }),
   },
 } satisfies CatalogDefinitions;

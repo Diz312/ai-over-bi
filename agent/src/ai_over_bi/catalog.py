@@ -76,7 +76,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=BarChartPayload,
         description="Categorical bar chart, vertical or horizontal layout.",
         when_to_use='Store/region rankings → use layout="horizontal" with top 10–15 entries. Quarterly breakdowns → layout="vertical".',
-        props_summary="{ title?, data: [{label, <seriesKey>: number}], series: [{key, label, color?}], layout?, value_format?, x_axis_label?, y_axis_label? }",
+        props_summary="{ title?, data: [{label, <seriesKey>: number}], series: [{key, label}], layout?, stacked?, value_format?, x_axis_label?, y_axis_label? }",
     ),
     VizCatalogEntry(
         viz_type="line_chart",
@@ -84,7 +84,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=LineChartPayload,
         description="Time-series line chart.",
         when_to_use="Trend over time (daily, monthly, quarterly). Best for continuous metric movement.",
-        props_summary="{ title?, data: [{label, <seriesKey>: number}], series: [{key, label, color?}], value_format?, show_dots?, x_axis_label?, y_axis_label? }",
+        props_summary="{ title?, data: [{label, <seriesKey>: number}], series: [{key, label}], value_format?, show_dots?, x_axis_label?, y_axis_label? }",
     ),
     VizCatalogEntry(
         viz_type="area_chart",
@@ -92,7 +92,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=AreaChartPayload,
         description="Filled area chart, optionally stacked.",
         when_to_use="Cumulative trends, or stacked composition over time. stacked=true for multi-series composition.",
-        props_summary="{ title?, data: [{label, <seriesKey>: number}], series: [{key, label, color?}], value_format?, stacked?, x_axis_label?, y_axis_label? }",
+        props_summary="{ title?, data: [{label, <seriesKey>: number}], series: [{key, label}], value_format?, stacked?, x_axis_label?, y_axis_label? }",
     ),
     VizCatalogEntry(
         viz_type="pie_chart",
@@ -100,7 +100,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=PieChartPayload,
         description="Part-to-whole distribution (shares/mix).",
         when_to_use="Share/mix breakdowns (e.g. sales by region as % of total). Best for 3–8 slices. Use inner_radius=60 for a donut.",
-        props_summary="{ title?, data: [{label, value, color?}], value_format?, show_labels?, inner_radius? }",
+        props_summary="{ title?, data: [{label, value}], value_format?, show_labels?, inner_radius? }",
     ),
     VizCatalogEntry(
         viz_type="data_table",

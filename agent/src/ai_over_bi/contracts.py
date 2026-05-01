@@ -37,12 +37,20 @@ class TrendPoint(BaseModel):
     value: float
 
 
+class InsightItem(BaseModel):
+    """A single analyst insight with sentiment classification for visual styling."""
+
+    headline: str                                           # short title of the finding
+    body: str                                               # 2–3 sentence explanation
+    why: str | None = None                                  # "Why this matters: ..." impact statement
+    sentiment: Literal["positive", "negative", "neutral"] = "neutral"
+
+
 class SeriesConfig(BaseModel):
-    """Chart series definition — maps a data key to a display label and color."""
+    """Chart series definition — maps a data key to a display label."""
 
     key: str
     label: str
-    color: str | None = None  # hex color; frontend applies palette default if absent
 
 
 class PeriodData(BaseModel):
@@ -70,6 +78,7 @@ class BarChartProps(BaseModel):
     data: list[dict[str, Any]]       # [{label: str, [seriesKey]: number}]
     series: list[SeriesConfig]
     layout: Literal["vertical", "horizontal"] = "vertical"
+    stacked: bool = False
     value_format: Literal["number", "currency", "percentage"] = "number"
     x_axis_label: str | None = None
     y_axis_label: str | None = None

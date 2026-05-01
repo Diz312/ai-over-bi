@@ -1,25 +1,40 @@
 "use client";
 
-import type { ComparisonCardProps } from "@/types/viz";
+import type { ComparisonCardProps, DeltaDirection } from "@/types/viz";
 import { formatValue } from "@/lib/format";
 
-const DELTA_COLORS = {
-  up:   { bg: "#F0FDF4", text: "#2E7D32", border: "#A5D6A7", badge: "#C8E6C9" },
-  down: { bg: "#FEF2F2", text: "#DA291C", border: "#FFCDD2", badge: "#FFCDD2" },
-  flat: { bg: "#F5F5F5", text: "#6B6B6B", border: "#E2E8F0", badge: "#F5F5F5" },
+// Matches KPICard direction colors exactly
+const DIRECTION_COLORS: Record<DeltaDirection, string> = {
+  up:   "#1F6437",
+  down: "#DA291C",
+  flat: "#6B6B6B",
 };
 
-const DELTA_ICONS = { up: "▲", down: "▼", flat: "—" };
+// Reused from KPICard — chevron rotated by direction
+function DirectionArrow({ direction, color }: { direction: DeltaDirection; color: string }) {
+  const rotate = direction === "up" ? -90 : direction === "down" ? 90 : 0;
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      style={{ transform: `rotate(${rotate}deg)`, flexShrink: 0 }}
+    >
+      <path d="M6 4L10 8L6 12" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
+// Comparison bar — same track color as BarChart grid (#E8E8E8)
 function Bar({ pct, color }: { pct: number; color: string }) {
   return (
-    <div style={{ height: 4, background: "#F1F5F9", borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ height: 4, background: "#E8E8E8", borderRadius: 2, overflow: "hidden" }}>
       <div style={{
         height: "100%",
         width: `${Math.min(100, Math.max(0, pct))}%`,
         background: color,
         borderRadius: 2,
-        transition: "width 0.5s ease",
       }} />
     </div>
   );
@@ -36,87 +51,117 @@ export function ComparisonCard({
   insight,
 }: ComparisonCardProps) {
   const dir = delta.direction;
-  const colors = DELTA_COLORS[dir];
+  const dirColor = DIRECTION_COLORS[dir];
   const maxVal = Math.max(current.value, prior.value) || 1;
   const currentPct = (current.value / maxVal) * 100;
-  const priorPct = (prior.value / maxVal) * 100;
+  const priorPct   = (prior.value / maxVal) * 100;
+
+  const deltaText = delta.type === "percentage"
+    ? `${Math.abs(delta.value).toFixed(1)}%`
+    : formatValue(Math.abs(delta.value), value_format);
 
   return (
     <div style={{
-      background: "#FFFFFF",
-      borderRadius: 12,
-      border: "1px solid #E2E8F0",
-      padding: "20px 24px",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+      background: "#F4F7F5",
+      borderRadius: 4,
+      padding: 12,
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+      boxShadow: "0px 1px 10px 0px rgba(0,0,0,0.08)",
+      minWidth: 0,
+      overflow: "hidden",
     }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 2 }}>
-            {title}
-          </div>
-          <div style={{ fontSize: 12, color: "#94A3B8" }}>{metric}</div>
-        </div>
-        {/* Delta badge */}
-        <div style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 5,
-          padding: "4px 12px",
-          borderRadius: 20,
-          background: colors.bg,
-          border: `1px solid ${colors.border}`,
-          fontSize: 13,
-          fontWeight: 800,
-          color: colors.text,
-          flexShrink: 0,
+      {/* Title — P1 Bold: 16px Bold #292929 lh 20px ls -0.15px (matches KPICard) */}
+      <p style={{
+        fontSize: 16,
+        fontWeight: 700,
+        color: "#292929",
+        lineHeight: "20px",
+        letterSpacing: "-0.15px",
+        margin: 0,
+      }}>
+        {title}
+      </p>
+
+      {/* Metric label — Graph Labels: 11px Regular #6F6F6F ls -0.1875px */}
+      <p style={{
+        fontSize: 11,
+        fontWeight: 400,
+        color: "#6F6F6F",
+        lineHeight: "14px",
+        letterSpacing: "-0.1875px",
+        margin: 0,
+      }}>
+        {metric}{unit ? ` (${unit})` : ""}
+      </p>
+
+      {/* Delta row — DirectionArrow + value (matches KPICard delta style) */}
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <DirectionArrow direction={dir} color={dirColor} />
+        <span style={{
+          fontSize: 20,
+          fontWeight: 700,
+          color: dirColor,
+          lineHeight: 1,
+          whiteSpace: "nowrap",
         }}>
-          <span style={{ fontSize: 10 }}>{DELTA_ICONS[dir]}</span>
-          {delta.type === "percentage"
-            ? `${Math.abs(delta.value).toFixed(1)}%`
-            : formatValue(Math.abs(delta.value), value_format)}
-          {delta.label && (
-            <span style={{ fontSize: 10, fontWeight: 500, color: colors.text, opacity: 0.75 }}>
-              &nbsp;{delta.label}
-            </span>
-          )}
-        </div>
+          {deltaText}
+        </span>
+        {delta.label && (
+          <span style={{
+            fontSize: 11,
+            fontWeight: 400,
+            color: dirColor,
+            lineHeight: "14px",
+            letterSpacing: "-0.1875px",
+            marginLeft: 2,
+          }}>
+            {delta.label}
+          </span>
+        )}
       </div>
 
       {/* Current period */}
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-          <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>{current.label}</span>
-          <span style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.02em" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <span style={{ fontSize: 11, fontWeight: 400, color: "#6F6F6F", letterSpacing: "-0.1875px" }}>
+            {current.label}
+          </span>
+          <span style={{ fontSize: 24, fontWeight: 700, color: dirColor, letterSpacing: "-0.02em", lineHeight: 1 }}>
             {formatValue(current.value, value_format)}
           </span>
         </div>
-        <Bar pct={currentPct} color="#FFBC0D" />
+        <Bar pct={currentPct} color={dirColor} />
       </div>
 
       {/* Prior period */}
-      <div style={{ marginBottom: insight ? 14 : 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-          <span style={{ fontSize: 11, color: "#94A3B8", fontWeight: 500 }}>{prior.label}</span>
-          <span style={{ fontSize: 15, fontWeight: 600, color: "#94A3B8", letterSpacing: "-0.01em" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <span style={{ fontSize: 11, fontWeight: 400, color: "#6F6F6F", letterSpacing: "-0.1875px" }}>
+            {prior.label}
+          </span>
+          <span style={{ fontSize: 16, fontWeight: 400, color: "#6F6F6F", letterSpacing: "-0.15px", lineHeight: "20px" }}>
             {formatValue(prior.value, value_format)}
           </span>
         </div>
-        <Bar pct={priorPct} color="#CBD5E1" />
+        <Bar pct={priorPct} color="#D6D6D6" />
       </div>
 
-      {/* Metric-level insight */}
+      {/* Metric-level insight — Graph Labels: 11px Regular #6F6F6F ls -0.1875px */}
       {insight && (
-        <div style={{
-          borderTop: "1px solid #F1F5F9",
-          paddingTop: 12,
+        <p style={{
           fontSize: 11,
-          color: "#64748B",
-          lineHeight: 1.6,
-          fontStyle: "italic",
+          fontWeight: 400,
+          color: "#6F6F6F",
+          lineHeight: "14px",
+          letterSpacing: "-0.1875px",
+          margin: 0,
+          paddingTop: 8,
+          borderTop: "1px solid #D6D6D6",
         }}>
           {insight}
-        </div>
+        </p>
       )}
     </div>
   );
