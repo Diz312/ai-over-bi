@@ -47,7 +47,7 @@ export function NavBar() {
         >
           <img
             alt="QuickBite"
-            src="/icons/image%20103.png"
+            src="/icons/mcd-logo.png"
             style={{ height: 32, width: "auto", display: "block", flexShrink: 0 }}
           />
           <span style={TYPO_P1_BOLD}>AI over BI — QuickBite Analytics</span>

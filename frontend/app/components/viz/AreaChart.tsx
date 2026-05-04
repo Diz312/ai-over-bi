@@ -76,11 +76,14 @@ function CustomTooltip({ active, payload, label, value_format }: TooltipProps) {
 
 function SeriesLegend({ series }: { series: AreaChartProps["series"] }) {
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center", justifyContent: "center" }}>
+    // gap: 20 between items + 6 inside (swatch ↔ label) — matches BarChart
+    // legend spacing so the bottom of the chart card has consistent breathing
+    // room between Y-axis tick labels above and the legend swatches/text below.
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center", justifyContent: "center" }}>
       {series.map((s, idx) => {
         const color = CHART_COLORS[idx % CHART_COLORS.length];
         return (
-          <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
             <svg width="20" height="8" viewBox="0 0 20 8" aria-hidden>
               <rect x="0" y="2" width="20" height="6" rx="1" fill={color} fillOpacity={0.2} />
               <line x1="0" y1="2" x2="20" y2="2" stroke={color} strokeWidth="2" />
@@ -122,7 +125,9 @@ export function AreaChart({
       padding: 12,
       display: "flex",
       flexDirection: "column",
-      gap: 16,
+      // 24 (vs 16 elsewhere) — extra breathing room between the chart's X-axis
+      // and the legend swatches so they don't crowd the lowest Y-axis tick row.
+      gap: 24,
       overflow: "hidden",
     }}>
       {title && (

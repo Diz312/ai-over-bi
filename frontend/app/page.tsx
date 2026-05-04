@@ -43,7 +43,6 @@ export default function Home() {
             width: "100%",
             display: "flex",
             flexDirection: "column",
-            overflow: "hidden",
           }}
         >
           <NavBar />

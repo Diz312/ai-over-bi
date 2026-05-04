@@ -42,3 +42,11 @@ html, body {
 [data-copilotkit] textarea {
   background-color: #ffffff;
 }
+
+/* ── Chat input region — transparent surface so the gold SVG background shows through ── */
+[data-region="chat-input"] {
+  --ck-surface: transparent;
+  --background: transparent;
+  --card: transparent;
+  --popover: transparent;
+}

@@ -215,12 +215,20 @@ export function BarChart({
   const xTickRotated = !horizontalBars && longestLabelLen > 6;
 
   // ── Bar thickness ───────────────────────────────────────────────────────────
-  // Explicit pixel sizes for legibility — independent of category count.
-  // Vertical bars (rising) cap at MAX_SIZE so they don't get unwieldy with few categories.
-  // Horizontal bars use a fixed BAR_SIZE so each row reads at consistent thickness.
-  const VERTICAL_BAR_MAX_SIZE  = 48;
-  const HORIZONTAL_BAR_SIZE    = 32;
-  const HORIZONTAL_ROW_GAP     = 12;  // pixel gap between rows in horizontal mode
+  // Vertical bars (rising): cap width per-bar based on series count so grouped
+  // bar charts (e.g. 2024 vs 2023) don't crowd the category gap. Single-series
+  // charts get the chunky 48px bar; multi-series taper down to keep groups
+  // legible without overflowing the category slot.
+  //   1 series → 48 · 2 → 34 · 3 → 28 · 4 → 24 · 5 → 22 · 6 → 20 · 8+ → 17
+  // Floor at 14 so even very crowded groupings stay readable.
+  const VERTICAL_BAR_MAX_SIZE = Math.max(
+    14,
+    Math.floor(48 / Math.sqrt(Math.max(1, series.length))),
+  );
+  // Horizontal bars use a fixed pixel height per row so ranking reads at
+  // consistent thickness regardless of category count.
+  const HORIZONTAL_BAR_SIZE   = 32;
+  const HORIZONTAL_ROW_GAP    = 12;  // pixel gap between rows in horizontal mode
 
   // ── Y-axis label space reservation ──────────────────────────────────────────
   // When y_axis_label is provided, reserve extra width so the rotated label

@@ -120,24 +120,40 @@ def render_surface(
     # (between rows) and every inner Row gap (between siblings).
     GAP_PX = 16
 
-    # Tier assignments. Order in TIER_MAX_COLS doesn't matter for grouping
-    # (preserves agent input order); it just defines max-per-row per tier.
-    TIER_FOR_VIZ: dict[str, str] = {
-        "kpi_card":         "compact",
-        "comparison_card":  "compact",
-        "pie_chart":        "medium",
-        "bar_chart":        "wide",
-        "line_chart":       "wide",
-        "area_chart":       "wide",
-        "data_table":       "full",
-    }
+    # Tier assignments. Tier name = group-boundary key — payloads with different
+    # tier names will NEVER merge into the same row, even if their max_cols
+    # match. That's why kpi_card and comparison_card live in distinct
+    # "compact-*" buckets: visually they look similar (both 4-up), but mixing
+    # them in a single row reads as inconsistent design.
     TIER_MAX_COLS: dict[str, int] = {
-        "compact": 4,
-        "medium":  3,
-        "wide":    2,
-        "full":    1,
+        "compact-kpi":         4,
+        "compact-comparison":  4,
+        "medium":              3,
+        "wide":                2,
+        "full":                1,
     }
     DEFAULT_TIER = "wide"  # for any new vizType not yet tier-tagged
+
+    def _tier_for(viz: dict[str, Any]) -> str:
+        """Map a viz payload to a layout tier.
+
+        Most types map by vizType alone, but `bar_chart` is split by
+        orientation: horizontal bar charts have variable height (one row of
+        bars per category), so pairing them with another viz of unrelated
+        height creates stretched/awkward layouts. Force them to full width.
+        """
+        vt = viz["vizType"]
+        if vt == "bar_chart":
+            layout = (viz.get("props") or {}).get("layout", "vertical")
+            return "full" if layout == "horizontal" else "wide"
+        return {
+            "kpi_card":         "compact-kpi",
+            "comparison_card":  "compact-comparison",
+            "pie_chart":        "medium",
+            "line_chart":       "wide",
+            "area_chart":       "wide",
+            "data_table":       "full",
+        }.get(vt, DEFAULT_TIER)
 
     root_children: list[str] = []
     components: list[dict[str, Any]] = []
@@ -195,7 +211,7 @@ def render_surface(
         """
         if not group_payloads:
             return
-        tier = TIER_FOR_VIZ.get(group_payloads[0]["vizType"], DEFAULT_TIER)
+        tier = _tier_for(group_payloads[0])
         max_cols = TIER_MAX_COLS[tier]
         for i in range(0, len(group_payloads), max_cols):
             chunk = group_payloads[i : i + max_cols]
@@ -211,7 +227,7 @@ def render_surface(
     current_tier: str | None = None
     current_group: list[dict[str, Any]] = []
     for viz in validated:
-        tier = TIER_FOR_VIZ.get(viz["vizType"], DEFAULT_TIER)
+        tier = _tier_for(viz)
         if tier != current_tier:
             _emit_group(current_group)
             current_group = []
