@@ -6,13 +6,9 @@ import {
   BACKFILL_BLUE,
   BACKFILL_GREEN,
   BACKFILL_RED,
-  BORDER_CARD,
   BRAND_GREEN,
   BRAND_RED,
-  BRAND_WHITE,
-  SECONDARY_BLACK,
-  TYPO_P1_BOLD,
-  TYPO_P1_REGULAR,
+  TYPO_P2_BOLD,
   TYPO_P2_REGULAR,
 } from "@/lib/theme";
 
@@ -27,7 +23,7 @@ const SENTIMENT: Record<InsightItem["sentiment"], { background: string; border: 
   neutral:  { background: BACKFILL_BLUE,  border: ACCENT_LIGHT_BLUE },
 };
 
-// ── Individual insight card ───────────────────────────────────────────────────
+// ── Individual insight card (compact — fits 2×2 grid) ────────────────────────
 
 function InsightCard({ item }: { item: InsightItem }) {
   const { background, border } = SENTIMENT[item.sentiment ?? "neutral"];
@@ -36,59 +32,34 @@ function InsightCard({ item }: { item: InsightItem }) {
       background,
       border: `0.4px solid ${border}`,
       borderRadius: 4,
-      padding: "10px 16px",
+      padding: "10px 12px",
       display: "flex",
       flexDirection: "column",
-      gap: 5,
+      gap: 4,
+      minWidth: 0,
     }}>
-      {/* Headline — P1 Bold */}
-      <p style={{ ...TYPO_P1_BOLD, margin: 0 }}>
+      <p style={{ ...TYPO_P2_BOLD, margin: 0 }}>
         {item.headline}
       </p>
-
-      {/* Body + why + source */}
-      <div>
-        {/* Body — P1 Regular */}
-        <p style={{ ...TYPO_P1_REGULAR, margin: 0, marginBottom: 16 }}>
-          {item.body}
-        </p>
-
-        {/* Why this matters — P2 Regular */}
-        {item.why && (
-          <p style={{ ...TYPO_P2_REGULAR, margin: 0, marginBottom: 16 }}>
-            {item.why}
-          </p>
-        )}
-
-        {/* Source line — 10px Regular ALL CAPS (one-off, no shared token) */}
-        <p style={{
-          fontSize: 10,
-          fontWeight: 400,
-          color: SECONDARY_BLACK,
-          lineHeight: "12px",
-          letterSpacing: "-0.1875px",
-          margin: 0,
-          textTransform: "uppercase",
-        }}>
-          SOURCE: AI ANALYTICS ENGINE
-        </p>
-      </div>
+      <p style={{ ...TYPO_P2_REGULAR, margin: 0 }}>
+        {item.body}
+      </p>
     </div>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
+// 2-column grid by default. With odd insight counts the last card naturally
+// occupies a single grid cell on its own row. Single-insight banners collapse
+// to a one-column layout via auto-fit.
 
 export function InsightBanner({ insights }: InsightBannerProps) {
   if (!insights?.length) return null;
+  const cols = insights.length === 1 ? "1fr" : "1fr 1fr";
   return (
     <div style={{
-      background: BRAND_WHITE,
-      border: BORDER_CARD,
-      borderRadius: 4,
-      padding: 16,
-      display: "flex",
-      flexDirection: "column",
+      display: "grid",
+      gridTemplateColumns: cols,
       gap: 16,
     }}>
       {insights.map((item, i) => (

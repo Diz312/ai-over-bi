@@ -96,7 +96,50 @@ def render_surface(
         return {"error": f"Validation failed: {'; '.join(errors)}"}
 
     # ── 2. Build A2UI v0.9 component tree (adjacency list) ────────────────────
-    child_ids: list[str] = []
+    # Layout strategy — size-tier hierarchy. Each viz type maps to a tier that
+    # dictates how many can pack onto a row. Bar/line/area are wider than pies
+    # are wider than KPIs. Solo items (a tier-group with only one viz) render
+    # full-width as direct children of the root Column.
+    #
+    #   ┌──────────────────────────────────────────────────────┐
+    #   │  InsightBanner            (full width, 2×2 grid)     │
+    #   ├──────────────────────────────────────────────────────┤
+    #   │  Row[ KPI · KPI · KPI · KPI ]   tier=compact (≤4)    │
+    #   ├──────────────────────────────────────────────────────┤
+    #   │  Row[ Pie · Pie · Pie ]         tier=medium  (≤3)    │
+    #   ├──────────────────────────────────────────────────────┤
+    #   │  Row[ Chart · Chart ]           tier=wide    (≤2)    │
+    #   ├──────────────────────────────────────────────────────┤
+    #   │  DataTable                      tier=full   (=1)     │
+    #   └──────────────────────────────────────────────────────┘
+    #
+    # Same-tier consecutive payloads chunk into rows of up to N. Tier changes
+    # flush the current chunk. Result: symmetric pairing + consistent widths.
+
+    # Single source of truth for spacing — applied to both the root Column gap
+    # (between rows) and every inner Row gap (between siblings).
+    GAP_PX = 16
+
+    # Tier assignments. Order in TIER_MAX_COLS doesn't matter for grouping
+    # (preserves agent input order); it just defines max-per-row per tier.
+    TIER_FOR_VIZ: dict[str, str] = {
+        "kpi_card":         "compact",
+        "comparison_card":  "compact",
+        "pie_chart":        "medium",
+        "bar_chart":        "wide",
+        "line_chart":       "wide",
+        "area_chart":       "wide",
+        "data_table":       "full",
+    }
+    TIER_MAX_COLS: dict[str, int] = {
+        "compact": 4,
+        "medium":  3,
+        "wide":    2,
+        "full":    1,
+    }
+    DEFAULT_TIER = "wide"  # for any new vizType not yet tier-tagged
+
+    root_children: list[str] = []
     components: list[dict[str, Any]] = []
 
     # Optional insight banner — always first if present.
@@ -115,25 +158,73 @@ def render_surface(
                 "component": "InsightBanner",
                 "insights": valid_insights,
             })
-            child_ids.append("insight-banner")
+            root_children.append("insight-banner")
 
-    # One component per validated viz payload
-    for i, viz in enumerate(validated):
+    # ── Layout grouper ────────────────────────────────────────────────────────
+    viz_counter = 0
+    row_counter = 0
+
+    def _add_viz(viz: dict[str, Any]) -> str | None:
+        nonlocal viz_counter
         comp_type = COMPONENT_BY_VIZ_TYPE.get(viz["vizType"])
         if not comp_type:
             logger.warning("Unknown vizType — skipping", extra={"vizType": viz["vizType"]})
-            continue
-        comp_id = f"viz-{i}"
-        components.append({
-            "id": comp_id,
-            "component": comp_type,
-            **viz["props"],
-        })
-        child_ids.append(comp_id)
+            return None
+        comp_id = f"viz-{viz_counter}"
+        viz_counter += 1
+        components.append({"id": comp_id, "component": comp_type, **viz["props"]})
+        return comp_id
 
-    # Root Column wraps everything
+    def _wrap_row(child_ids: list[str]) -> str:
+        nonlocal row_counter
+        rid = f"row-{row_counter}"
+        row_counter += 1
+        components.append({
+            "id": rid,
+            "component": "LayoutRow",
+            "children": child_ids,
+            "gap": GAP_PX,
+        })
+        return rid
+
+    def _emit_group(group_payloads: list[dict[str, Any]]) -> None:
+        """Emit a same-tier group as one or more Rows of up to N items.
+
+        Single-item chunks (group of 1, or a trailing remainder of 1) go in
+        as direct Column children to claim full width.
+        """
+        if not group_payloads:
+            return
+        tier = TIER_FOR_VIZ.get(group_payloads[0]["vizType"], DEFAULT_TIER)
+        max_cols = TIER_MAX_COLS[tier]
+        for i in range(0, len(group_payloads), max_cols):
+            chunk = group_payloads[i : i + max_cols]
+            chunk_ids = [cid for cid in (_add_viz(v) for v in chunk) if cid]
+            if not chunk_ids:
+                continue
+            if len(chunk_ids) == 1:
+                root_children.append(chunk_ids[0])
+            else:
+                root_children.append(_wrap_row(chunk_ids))
+
+    # Walk validated payloads in order; flush at every tier boundary.
+    current_tier: str | None = None
+    current_group: list[dict[str, Any]] = []
+    for viz in validated:
+        tier = TIER_FOR_VIZ.get(viz["vizType"], DEFAULT_TIER)
+        if tier != current_tier:
+            _emit_group(current_group)
+            current_group = []
+            current_tier = tier
+        current_group.append(viz)
+    _emit_group(current_group)
+
+    # Root LayoutColumn wraps everything — gap matches inner LayoutRow gap for
+    # consistent vertical rhythm. We use our own LayoutColumn/LayoutRow rather
+    # than the basic catalog's Column/Row because the basic renderers silently
+    # drop the `gap` prop and don't equalize Row child widths.
     all_components: list[dict[str, Any]] = [
-        {"id": "root", "component": "Column", "children": child_ids},
+        {"id": "root", "component": "LayoutColumn", "children": root_children, "gap": GAP_PX},
         *components,
     ]
 

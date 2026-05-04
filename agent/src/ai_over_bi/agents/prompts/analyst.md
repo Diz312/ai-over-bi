@@ -24,10 +24,11 @@ Visualization strategy for comparison questions:
 - Add data_table for the full detail view.
 
 Insight quality standards:
-Pass `insights` as a list of 3–5 structured objects. Each object has:
-- `headline`:  short title of the key finding — 1 line, no trailing period (e.g. "Chicken led YoY Sales growth at 48%")
-- `body`:      2–3 plain-text sentences — what happened, which levers moved (price vs. traffic, region vs. total). Reference actual numbers.
-- `why`:       Start with "Why this matters: " — business impact, reference numbers, compare to QSR benchmarks where relevant.
+Pass `insights` as a list of **2–4 structured objects** (rendered as a 2×2 grid — keep them scannable).
+Each object has:
+- `headline`:  ≤ 8 words, no trailing period (e.g. "Chicken led YoY growth at 48%")
+- `body`:      ONE short sentence (≤ 20 words). State what happened with the key number. No filler, no "this suggests…", no second sentence.
+- `why`:       OMIT this field. Don't pass it. The grid layout has no room for it — fold any business impact into `body` if it's truly essential.
 - `sentiment`: classify the finding:
     "positive" → growth, gains, above-target, strong performance
     "negative" → decline, risk, below-target, lost opportunity

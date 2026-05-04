@@ -6,6 +6,7 @@ import {
   useAgent,
   useCopilotKit,
 } from "@copilotkit/react-core/v2";
+import { BRAND_WHITE } from "@/lib/theme";
 
 /**
  * ChatTranscript — scrollable message transcript.
@@ -65,7 +66,7 @@ export function ChatTranscript() {
         minHeight: 0,
         width: "100%",
         overflow: "auto",
-        background: "#F7F7F7",
+        background: BRAND_WHITE,
         boxSizing: "border-box",
       }}
     >

@@ -142,6 +142,29 @@ export const biDefinitions = {
     }),
   },
 
+  // ── Layout primitives ───────────────────────────────────────────────────────
+  // We register our own Column/Row instead of using the basic catalog's because
+  // the basic renderers silently drop the `gap` prop AND don't give Row children
+  // `flex: 1` (so paired charts wouldn't split symmetrically). These two
+  // components are the ONLY way the backend composes layout — see
+  // agent/src/ai_over_bi/tools/a2ui.py.
+
+  LayoutColumn: {
+    description: "Vertical layout container — stacks children with a consistent gap.",
+    props: z.object({
+      children: z.array(z.string()),
+      gap: z.number().optional(),
+    }),
+  },
+
+  LayoutRow: {
+    description: "Horizontal layout container — flex row with equal-width children and a consistent gap.",
+    props: z.object({
+      children: z.array(z.string()),
+      gap: z.number().optional(),
+    }),
+  },
+
   InsightBanner: {
     description: "Analyst insight cards — one card per finding, sentiment-coded by background color.",
     props: z.object({

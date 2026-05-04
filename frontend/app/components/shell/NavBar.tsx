@@ -45,6 +45,11 @@ export function NavBar() {
             flexShrink: 0,
           }}
         >
+          <img
+            alt="QuickBite"
+            src="/icons/image%20103.png"
+            style={{ height: 32, width: "auto", display: "block", flexShrink: 0 }}
+          />
           <span style={TYPO_P1_BOLD}>AI over BI — QuickBite Analytics</span>
         </div>
 
