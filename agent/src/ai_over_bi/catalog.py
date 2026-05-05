@@ -52,6 +52,9 @@ class VizCatalogEntry:
 
 # ── Manifest ───────────────────────────────────────────────────────────────────
 # Add new viz types here. Order is preserved in prompt output.
+# NOTE: props_summary literals (e.g. "vertical"|"horizontal") are hand-maintained
+# and must stay in sync with contracts.py. If you change a Literal there, mirror
+# the change here so the agent's prompt reflects the actual allowed values.
 
 VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
     VizCatalogEntry(
@@ -60,7 +63,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=KPICardPayload,
         description="Single metric summary card with optional delta and sparkline trend.",
         when_to_use="Headline metric overview. Use 3–4 kpi_cards in a row for a summary; one alone for a single hero metric.",
-        props_summary="{ title, value, unit?, value_format?, delta?: {value, type, direction, label?}, trend?: [{period, value}], subtitle? }",
+        props_summary='{ title, value, unit?, value_format?: "number"|"currency"|"percentage"|"raw", delta?: {value, type: "percentage"|"absolute", direction: "up"|"down"|"flat", label?}, trend?: [{period, value}], subtitle? }',
     ),
     VizCatalogEntry(
         viz_type="comparison_card",
@@ -68,7 +71,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=ComparisonCardPayload,
         description="Period-over-period comparison card for a single metric (current vs prior + delta).",
         when_to_use="Period comparison questions. One comparison_card per metric. Pair with bar_chart for breakdowns.",
-        props_summary="{ title, metric, unit?, value_format?, current: {label, value}, prior: {label, value}, delta: {value, type, direction, label?}, insight? }",
+        props_summary='{ title, metric, unit?, value_format?: "number"|"currency"|"percentage", current: {label, value}, prior: {label, value}, delta: {value, type: "percentage"|"absolute", direction: "up"|"down"|"flat", label?}, insight? }',
     ),
     VizCatalogEntry(
         viz_type="bar_chart",
@@ -76,7 +79,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=BarChartPayload,
         description="Categorical bar chart, vertical or horizontal layout.",
         when_to_use='Store/region rankings → use layout="horizontal" with top 10–15 entries. Quarterly breakdowns → layout="vertical".',
-        props_summary="{ title?, data: [{label, <seriesKey>: number}], series: [{key, label}], layout?, stacked?, value_format?, x_axis_label?, y_axis_label? }",
+        props_summary='{ title?, data: [{label, <seriesKey>: number}], series: [{key, label}], layout?: "vertical"|"horizontal", stacked?: boolean, value_format?: "number"|"currency"|"percentage", x_axis_label?, y_axis_label? }',
     ),
     VizCatalogEntry(
         viz_type="line_chart",
@@ -84,7 +87,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=LineChartPayload,
         description="Time-series line chart.",
         when_to_use="Trend over time (daily, monthly, quarterly). Best for continuous metric movement.",
-        props_summary="{ title?, data: [{label, <seriesKey>: number}], series: [{key, label}], value_format?, show_dots?, x_axis_label?, y_axis_label? }",
+        props_summary='{ title?, data: [{label, <seriesKey>: number}], series: [{key, label}], value_format?: "number"|"currency"|"percentage", show_dots?: boolean, x_axis_label?, y_axis_label? }',
     ),
     VizCatalogEntry(
         viz_type="area_chart",
@@ -92,7 +95,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=AreaChartPayload,
         description="Filled area chart, optionally stacked.",
         when_to_use="Cumulative trends, or stacked composition over time. stacked=true for multi-series composition.",
-        props_summary="{ title?, data: [{label, <seriesKey>: number}], series: [{key, label}], value_format?, stacked?, x_axis_label?, y_axis_label? }",
+        props_summary='{ title?, data: [{label, <seriesKey>: number}], series: [{key, label}], value_format?: "number"|"currency"|"percentage", stacked?: boolean, x_axis_label?, y_axis_label? }',
     ),
     VizCatalogEntry(
         viz_type="pie_chart",
@@ -100,7 +103,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=PieChartPayload,
         description="Part-to-whole distribution (shares/mix).",
         when_to_use="Share/mix breakdowns (e.g. sales by region as % of total). Best for 3–8 slices. Use inner_radius=60 for a donut.",
-        props_summary="{ title?, data: [{label, value}], value_format?, show_labels?, inner_radius? }",
+        props_summary='{ title?, data: [{label, value}], value_format?: "number"|"currency"|"percentage", show_labels?: boolean, inner_radius?: number (0=pie, >0=donut) }',
     ),
     VizCatalogEntry(
         viz_type="data_table",
@@ -108,7 +111,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         payload_class=DataTablePayload,
         description="Tabular detail view with typed columns.",
         when_to_use="Drilldown detail. Always include alongside charts so analysts can inspect underlying numbers.",
-        props_summary="{ title?, columns: [{key, label, type?, align?}], rows: [{<key>: value}], caption? }",
+        props_summary='{ title?, columns: [{key, label, type?: "string"|"number"|"currency"|"percentage", align?: "left"|"right"|"center"}], rows: [{<key>: value}], caption? }',
     ),
 )
 

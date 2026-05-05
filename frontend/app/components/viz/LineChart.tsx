@@ -152,13 +152,18 @@ export function LineChart({
               axisLine={{ stroke: BORDER_CHART_GRID }}
               tickLine={false}
               tick={{ fontSize: 10, fill: SECONDARY_DARK_GREY, letterSpacing: "-0.1875" }}
-              height={x_axis_label ? 40 : 24}
+              // 56px (vs 40 previously) reserves enough vertical room so the
+              // x_axis_label sits clear of the tick row above it. tickMargin
+              // pushes tick text down a hair from the axis line; offset anchors
+              // the label nearer the bottom of the reserved area.
+              height={x_axis_label ? 56 : 24}
+              tickMargin={6}
             >
               {x_axis_label ? (
                 <Label
                   value={x_axis_label}
                   position="insideBottom"
-                  offset={-8}
+                  offset={4}
                   style={{ fill: SECONDARY_DARK_GREY, fontSize: 11, letterSpacing: "-0.1875px" }}
                 />
               ) : null}
