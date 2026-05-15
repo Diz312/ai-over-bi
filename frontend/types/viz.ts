@@ -130,6 +130,21 @@ export interface ComparisonCardProps {
   insight?: string | null;
 }
 
+export type QuickBiteRegion = "Northeast" | "Southeast" | "Midwest" | "Southwest" | "West";
+
+export interface RegionValue {
+  region: QuickBiteRegion;
+  value: number;
+  label?: string | null;
+}
+
+export interface RegionMapProps {
+  title?: string | null;
+  regions: RegionValue[];
+  metric: string;
+  value_format?: "number" | "currency" | "percentage";
+}
+
 export interface InsightBannerProps {
   insights: InsightItem[];
 }

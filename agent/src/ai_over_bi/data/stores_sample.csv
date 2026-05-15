@@ -1,0 +1,11 @@
+store_id,store_name,city,state,region
+1,"QuickBite Manhattan #1","New York",NY,Northeast
+2,"QuickBite Manhattan #2","New York",NY,Northeast
+3,"QuickBite Brooklyn","New York",NY,Northeast
+4,"QuickBite Queens","New York",NY,Northeast
+5,"QuickBite Bronx","New York",NY,Northeast
+6,"QuickBite Back Bay",Boston,MA,Northeast
+7,"QuickBite Downtown",Boston,MA,Northeast
+8,"QuickBite Cambridge",Cambridge,MA,Northeast
+9,"QuickBite Center City",Philadelphia,PA,Northeast
+10,"QuickBite South Philly",Philadelphia,PA,Northeast

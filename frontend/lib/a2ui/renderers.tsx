@@ -24,6 +24,7 @@ import { PieChart }       from "@/app/components/viz/PieChart";
 import { DataTable }      from "@/app/components/viz/DataTable";
 import { ComparisonCard } from "@/app/components/viz/ComparisonCard";
 import { InsightBanner }  from "@/app/components/viz/InsightBanner";
+import { RegionMap }      from "@/app/components/viz/RegionMap";
 
 const DEFAULT_GAP = 16;
 
@@ -36,6 +37,7 @@ export const biRenderers: CatalogRenderers<BIDefinitions> = {
   DataTable:      ({ props }) => <DataTable {...props} />,
   ComparisonCard: ({ props }) => <ComparisonCard {...props} />,
   InsightBanner:  ({ props }) => <InsightBanner {...props} />,
+  RegionMap:      ({ props }) => <RegionMap {...props} />,
 
   // Layout primitives. `children` here is the buildChild function injected by
   // the A2UI renderer — calling it with a child id resolves that id to its

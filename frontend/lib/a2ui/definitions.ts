@@ -176,6 +176,20 @@ export const biDefinitions = {
       })),
     }),
   },
+
+  RegionMap: {
+    description: "US choropleth map showing a metric across the 5 QuickBite regions.",
+    props: z.object({
+      title: z.string().optional(),
+      regions: z.array(z.object({
+        region: z.enum(["Northeast", "Southeast", "Midwest", "Southwest", "West"]),
+        value: z.number(),
+        label: z.string().optional(),
+      })),
+      metric: z.string(),
+      value_format: z.enum(["number", "currency", "percentage"]).optional(),
+    }),
+  },
 } satisfies CatalogDefinitions;
 
 export type BIDefinitions = typeof biDefinitions;

@@ -31,6 +31,7 @@ from ai_over_bi.contracts import (
     KPICardPayload,
     LineChartPayload,
     PieChartPayload,
+    RegionMapPayload,
 )
 
 
@@ -112,6 +113,14 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         description="Tabular detail view with typed columns.",
         when_to_use="Drilldown detail. Always include alongside charts so analysts can inspect underlying numbers.",
         props_summary='{ title?, columns: [{key, label, type?: "string"|"number"|"currency"|"percentage", align?: "left"|"right"|"center"}], rows: [{<key>: value}], caption? }',
+    ),
+    VizCatalogEntry(
+        viz_type="region_map",
+        component_name="RegionMap",
+        payload_class=RegionMapPayload,
+        description="US choropleth map showing a single metric across QuickBite's 5 regions, colored by relative intensity (light = low, dark blue = high).",
+        when_to_use="Geographic distribution questions: 'which region performs best?', 'show sales by region on a map', 'geographic breakdown'. Always pair with a DataTable for exact numbers. Requires exactly the 5 QuickBite regions: Northeast, Southeast, Midwest, Southwest, West.",
+        props_summary='{ title?, regions: [{region: "Northeast"|"Southeast"|"Midwest"|"Southwest"|"West", value: number, label?}], metric: str, value_format?: "number"|"currency"|"percentage" }',
     ),
 )
 

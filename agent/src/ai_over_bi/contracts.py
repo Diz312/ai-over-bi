@@ -137,6 +137,21 @@ class ComparisonCardProps(BaseModel):
     insight: str | None = None       # AnalystAgent narrative for this metric
 
 
+class RegionValue(BaseModel):
+    """Single region entry for the US choropleth map."""
+
+    region: Literal["Northeast", "Southeast", "Midwest", "Southwest", "West"]
+    value: float
+    label: str | None = None         # optional pre-formatted display string, e.g. "$18.5M"
+
+
+class RegionMapProps(BaseModel):
+    title: str | None = None
+    regions: list[RegionValue]       # one entry per QuickBite region
+    metric: str                      # e.g. "Net Sales", "Guest Count"
+    value_format: Literal["number", "currency", "percentage"] = "number"
+
+
 # ── Viz payload — discriminated union ─────────────────────────────────────────
 
 
@@ -175,6 +190,11 @@ class ComparisonCardPayload(BaseModel):
     props: ComparisonCardProps
 
 
+class RegionMapPayload(BaseModel):
+    vizType: Literal["region_map"] = "region_map"
+    props: RegionMapProps
+
+
 VizPayload = Annotated[
     Union[
         KPICardPayload,
@@ -184,6 +204,7 @@ VizPayload = Annotated[
         DataTablePayload,
         PieChartPayload,
         ComparisonCardPayload,
+        RegionMapPayload,
     ],
     Field(discriminator="vizType"),
 ]
