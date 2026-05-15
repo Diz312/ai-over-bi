@@ -175,22 +175,7 @@ export function ChatTranscript() {
           pointerEvents: dragging ? "none" : undefined,
         }}
       >
-        {vizMessages.length === 0 ? (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              color: SECONDARY_DARK_GREY,
-              fontSize: 13,
-              fontStyle: "italic",
-              opacity: 0.55,
-            }}
-          >
-            Visualizations will appear here
-          </div>
-        ) : (
+        {vizMessages.length > 0 && (
           <div style={{ padding: "16px", width: "100%" }}>
             <CopilotChatMessageView messages={vizMessages} isRunning={false} />
           </div>

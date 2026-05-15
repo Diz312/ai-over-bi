@@ -1,11 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import {
+  BRAND_RED,
   BRAND_WHITE,
   SECONDARY_BLACK,
   SHADOW_CARD,
-  TYPO_P1_BOLD,
 } from "@/lib/theme";
+
+const IMG_NAV_LOGO   = "https://www.figma.com/api/mcp/asset/eec50283-af19-401c-8319-b8016be5e6f1";
+const IMG_NAV_CHAT   = "https://www.figma.com/api/mcp/asset/de64d349-39f2-4ca7-a54e-17d3d769cff5";
+const IMG_NAV_AVATAR = "https://www.figma.com/api/mcp/asset/98cd8741-b5cf-4763-bcdc-b5fc200a6f33";
+
+const NAV_LINKS = [
+  { label: "Home",                  href: "/",       active: false },
+  { label: "Reports Catalog",       href: "#",       active: false },
+  { label: "Custom Report Builder", href: "#",       active: false },
+  { label: "Data Agent",             href: "/agent",  active: true  },
+];
 
 export function NavBar() {
   return (
@@ -19,9 +31,11 @@ export function NavBar() {
         display: "flex",
         alignItems: "center",
         width: "100%",
-        position: "relative",
         boxSizing: "border-box",
         flexShrink: 0,
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
       }}
     >
       <div
@@ -32,141 +46,48 @@ export function NavBar() {
           alignItems: "center",
           justifyContent: "space-between",
           minWidth: 1,
-          position: "relative",
         }}
       >
-        {/* Left — brand slot (Frame-adminNav position) */}
-        <div
-          style={{
-            display: "flex",
-            gap: 24,
-            height: "100%",
-            alignItems: "center",
-            flexShrink: 0,
-          }}
-        >
-          <img
-            alt="QuickBite"
-            src="/icons/mcd-logo.png"
-            style={{ height: 32, width: "auto", display: "block", flexShrink: 0 }}
-          />
-          <span style={TYPO_P1_BOLD}>AI over BI — QuickBite Analytics</span>
-        </div>
-
-        {/* Right — user settings + notification bell */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            flexShrink: 0,
-          }}
-        >
-          {/* User Settings: greeting text + avatar */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              flexShrink: 0,
-            }}
-          >
-            <span
+        {/* Left: logo + nav links */}
+        <div style={{ display: "flex", gap: 8, height: "100%", alignItems: "center" }}>
+          <div style={{ width: 40, height: 40, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img
+              alt="QuickBite"
+              src={IMG_NAV_LOGO}
+              style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+            />
+          </div>
+          {NAV_LINKS.map(({ label, href, active }) => (
+            <Link
+              key={label}
+              href={href}
               style={{
-                fontSize: 18,
-                fontWeight: 400,
-                color: SECONDARY_BLACK,
-                lineHeight: "22px",
-                letterSpacing: "-0.1875px",
-                textAlign: "right",
+                display: "flex",
+                height: "100%",
+                alignItems: "center",
+                padding: "0 16px",
+                textDecoration: "none",
+                color: active ? BRAND_RED : SECONDARY_BLACK,
+                fontWeight: active ? 700 : 400,
+                fontSize: 14,
+                lineHeight: "16px",
+                letterSpacing: -0.1875,
                 whiteSpace: "nowrap",
-              }}
-            >
-              Hi, Ismar!
-            </span>
-
-            {/* Avatar: gold circle + profile icon stacked */}
-            <div
-              style={{
-                position: "relative",
-                width: 24,
-                height: 24,
                 flexShrink: 0,
               }}
             >
-              <img
-                alt=""
-                src="/icons/avatar-ellipse.svg"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                }}
-              />
-              <img
-                alt=""
-                src="/icons/profile-icon.svg"
-                style={{
-                  position: "absolute",
-                  left: 4,
-                  top: 4,
-                  width: 16,
-                  height: 16,
-                }}
-              />
-            </div>
+              {label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Right: chat icon + avatar */}
+        <div style={{ display: "flex", gap: 16, alignItems: "center", flexShrink: 0 }}>
+          <div style={{ width: 25, height: 25 }}>
+            <img alt="" src={IMG_NAV_CHAT} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           </div>
-
-          {/* Nav Trailing Actions: bell icon + notification dot */}
-          <div
-            style={{
-              position: "relative",
-              width: 32,
-              height: 32,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 4,
-                borderRadius: "100%",
-              }}
-            >
-              <img
-                alt="Notifications"
-                src="/icons/bell-fill.svg"
-                style={{ width: 24, height: 24, display: "block" }}
-              />
-            </div>
-
-            {/* Red dot: left:24 top:1 relative to the 32×32 trailing-actions container */}
-            <div
-              style={{
-                position: "absolute",
-                left: 24,
-                top: 1,
-                width: 8,
-                height: 8,
-              }}
-            >
-              <img
-                alt=""
-                src="/icons/notification-dot.svg"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                }}
-              />
-            </div>
+          <div style={{ width: 36, height: 36 }}>
+            <img alt="" src={IMG_NAV_AVATAR} style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "50%" }} />
           </div>
         </div>
       </div>
