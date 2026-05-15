@@ -78,10 +78,12 @@ function SectionHeader({
   icon,
   title,
   subtitle,
+  exploreHref,
 }: {
   icon: string;
   title: string;
   subtitle: string;
+  exploreHref?: string;
 }) {
   return (
     <div
@@ -95,23 +97,52 @@ function SectionHeader({
       }}
     >
       <div style={{ display: "flex", gap: 10, alignItems: "flex-start", flex: 1 }}>
-        <div style={{ position: "relative", width: 32, height: 32, flexShrink: 0 }}>
-          <img alt="" src={icon} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+        <div style={{ width: 32, height: 32, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <img alt="" src={icon} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p
-            style={{
-              fontWeight: 700,
-              fontSize: 24,
-              lineHeight: "28px",
-              color: SECONDARY_BLACK,
-              letterSpacing: -0.15,
-              whiteSpace: "nowrap",
-              margin: 0,
-            }}
-          >
-            {title}
-          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <p
+              style={{
+                fontWeight: 700,
+                fontSize: 24,
+                lineHeight: "28px",
+                color: SECONDARY_BLACK,
+                letterSpacing: -0.15,
+                whiteSpace: "nowrap",
+                margin: 0,
+              }}
+            >
+              {title}
+            </p>
+            {exploreHref && (
+              <Link
+                href={exploreHref}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  textDecoration: "none",
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  style={{
+                    color: SECONDARY_LINK_BLUE,
+                    fontSize: 14,
+                    lineHeight: "28px",
+                    letterSpacing: -0.15,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Explore with AI
+                </span>
+                <div style={{ width: 20, height: 20 }}>
+                  <img alt="" src={IMG_EXPLORE_AI_CHAT} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                </div>
+              </Link>
+            )}
+          </div>
           <p
             style={{
               fontWeight: 400,
@@ -473,7 +504,6 @@ export default function HomePage() {
             {[
               { label: "Home", active: true, href: "/" },
               { label: "Reports Catalog", active: false, href: "#" },
-              { label: "Custom Report Builder", active: false, href: "#" },
               { label: "Data Agent", active: false, href: "/agent" },
             ].map(({ label, active, href }) => (
               <Link
@@ -636,6 +666,7 @@ export default function HomePage() {
             icon={IMG_COMP_ICON}
             title="Key Insights"
             subtitle="Performance trends and comparability metrics across your region."
+            exploreHref="/agent"
           />
 
           {/* General Report Insights */}
@@ -649,23 +680,6 @@ export default function HomePage() {
               borderBottom: `1px solid #EAEAEA`,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <p
-                style={{
-                  fontWeight: 700,
-                  fontSize: 14,
-                  lineHeight: "28px",
-                  color: SECONDARY_BLACK,
-                  letterSpacing: -0.15,
-                  textTransform: "uppercase",
-                  margin: 0,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                General Report Insights
-              </p>
-              <ExploreAI imgSrc={IMG_EXPLORE_AI_CHAT} />
-            </div>
             <div style={{ display: "flex", gap: 24 }}>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
                 <InsightCard

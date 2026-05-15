@@ -15,7 +15,6 @@ const IMG_NAV_AVATAR = "https://www.figma.com/api/mcp/asset/98cd8741-b5cf-4763-b
 const NAV_LINKS = [
   { label: "Home",                  href: "/",       active: false },
   { label: "Reports Catalog",       href: "#",       active: false },
-  { label: "Custom Report Builder", href: "#",       active: false },
   { label: "Data Agent",             href: "/agent",  active: true  },
 ];
 
