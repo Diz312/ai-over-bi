@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Agent Architecture — Global QSR Intelligence Platform</title>
+<style>
+:root {
+  --navy: #0f172a;
+  --navy-mid: #1e293b;
+  --navy-soft: #334155;
+  --blue: #2563EB;
+  --blue-dark: #1d4ed8;
+  --blue-light: #dbeafe;
+  --green: #059669;
+  --green-dark: #047857;
+  --green-light: #d1fae5;
+  --amber: #d97706;
+  --amber-dark: #b45309;
+  --amber-light: #fef3c7;
+  --purple: #7c3aed;
+  --purple-light: #ede9fe;
+  --indigo: #4338ca;
+  --indigo-light: #e0e7ff;
+  --sky: #0284c7;
+  --sky-light: #e0f2fe;
+  --rose: #e11d48;
+  --rose-light: #ffe4e6;
+  --slate: #64748b;
+  --slate-light: #f1f5f9;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --white: #ffffff;
+  --surface: #f8fafc;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --mono: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); color: var(--text); background: var(--white); line-height: 1.65; font-size: 15px; }
+
+/* ── LAYOUT ── */
+.container { max-width: 1140px; margin: 0 auto; padding: 0 32px; }
+section { padding: 64px 0; }
+section:nth-child(even) { background: var(--surface); }
+
+/* ── TYPOGRAPHY ── */
+h1 { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; }
+h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+h4 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+p { margin-bottom: 12px; }
+p:last-child { margin-bottom: 0; }
+.label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.mono { font-family: var(--mono); font-size: 0.85em; }
+
+/* ── HERO ── */
+.hero { background: var(--navy); color: var(--white); padding: 72px 0 64px; }
+.hero-eyebrow { color: #60a5fa; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
+.hero h1 { color: var(--white); margin-bottom: 18px; }
+.hero-sub { font-size: 1.15rem; color: #94a3b8; max-width: 680px; margin-bottom: 40px; }
+.hero-meta { display: flex; gap: 40px; }
+.hero-meta-item { }
+.hero-meta-label { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.hero-meta-value { color: #e2e8f0; font-size: 1.1rem; font-weight: 600; }
+
+/* ── CALLOUT BOX ── */
+.callout { border-radius: 12px; padding: 24px 28px; margin: 24px 0; }
+.callout.blue { background: var(--blue-light); border-left: 4px solid var(--blue); }
+.callout.green { background: var(--green-light); border-left: 4px solid var(--green); }
+.callout.amber { background: var(--amber-light); border-left: 4px solid var(--amber); }
+.callout.rose { background: var(--rose-light); border-left: 4px solid var(--rose); }
+.callout.purple { background: var(--purple-light); border-left: 4px solid var(--purple); }
+.callout.navy { background: #1e293b; border-left: 4px solid #60a5fa; color: #e2e8f0; }
+.callout h4 { color: inherit; margin-bottom: 8px; }
+
+/* ── GRID ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+@media (max-width: 860px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+
+/* ── CARDS ── */
+.card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+.card.blue { border-top: 3px solid var(--blue); }
+.card.green { border-top: 3px solid var(--green); }
+.card.amber { border-top: 3px solid var(--amber); }
+.card.purple { border-top: 3px solid var(--purple); }
+.card.rose { border-top: 3px solid var(--rose); }
+.card.navy { border-top: 3px solid var(--navy); }
+.card-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 12px; }
+.card-icon.blue { background: var(--blue-light); }
+.card-icon.green { background: var(--green-light); }
+.card-icon.amber { background: var(--amber-light); }
+.card-icon.purple { background: var(--purple-light); }
+.card-icon.rose { background: var(--rose-light); }
+.section-label { display: inline-block; background: var(--navy); color: var(--white); padding: 3px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+
+/* ── TABLE ── */
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th { background: var(--navy); color: var(--white); padding: 10px 14px; text-align: left; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:nth-child(even) td { background: var(--surface); }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; margin: 1px 2px; }
+.tag.blue { background: var(--blue-light); color: var(--blue-dark); }
+.tag.green { background: var(--green-light); color: var(--green-dark); }
+.tag.amber { background: var(--amber-light); color: var(--amber-dark); }
+.tag.purple { background: var(--purple-light); color: var(--purple); }
+.tag.rose { background: var(--rose-light); color: var(--rose); }
+.tag.slate { background: var(--slate-light); color: var(--navy-soft); }
+
+/* ── ARCH DIAGRAM ── */
+.arch-diagram { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: #f8fafc; padding: 28px 24px; }
+.arch-layer { margin-bottom: 8px; }
+.arch-layer-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; padding-left: 4px; }
+.arch-boxes { display: flex; gap: 8px; flex-wrap: wrap; }
+.arch-box { flex: 1; min-width: 120px; border-radius: 10px; padding: 10px 14px; text-align: center; position: relative; }
+.arch-box .box-title { font-size: 0.78rem; font-weight: 700; line-height: 1.3; }
+.arch-box .box-sub { font-size: 0.65rem; color: rgba(0,0,0,0.5); margin-top: 2px; line-height: 1.3; }
+.arch-box.user { background: #e2e8f0; }
+.arch-box.gateway { background: var(--navy); color: white; }
+.arch-box.gateway .box-sub { color: #94a3b8; }
+.arch-box.ent-orch { background: var(--blue); color: white; }
+.arch-box.ent-orch .box-sub { color: #bfdbfe; }
+.arch-box.analytics-orch { background: var(--green); color: white; }
+.arch-box.analytics-orch .box-sub { color: #a7f3d0; }
+.arch-box.process-orch { background: var(--amber); color: white; }
+.arch-box.process-orch .box-sub { color: #fde68a; }
+.arch-box.domain-agent { background: var(--green-light); color: var(--green-dark); }
+.arch-box.insight-agent { background: var(--indigo-light); color: var(--indigo); }
+.arch-box.process-agent { background: var(--amber-light); color: var(--amber-dark); }
+.arch-box.data { background: var(--sky-light); color: var(--sky); }
+.arch-box.systems { background: var(--slate-light); color: var(--navy-soft); }
+.arch-box.infra { background: var(--purple-light); color: var(--purple); }
+.arch-arrow { text-align: center; color: #94a3b8; font-size: 1.1rem; margin: 2px 0; line-height: 1; }
+.arch-note { font-size: 0.7rem; color: var(--text-muted); font-style: italic; text-align: right; margin-top: 6px; }
+
+/* ── FLOW DIAGRAM ── */
+.flow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 16px 0; }
+.flow-step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 0.82rem; font-weight: 600; text-align: center; min-width: 100px; }
+.flow-step.blue { background: var(--blue-light); border-color: var(--blue); color: var(--blue-dark); }
+.flow-step.green { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+.flow-step.amber { background: var(--amber-light); border-color: var(--amber); color: var(--amber-dark); }
+.flow-step.purple { background: var(--purple-light); border-color: var(--purple); color: var(--purple); }
+.flow-arrow { color: #94a3b8; padding: 0 6px; font-size: 1.1rem; flex-shrink: 0; }
+
+/* ── PHASE TIMELINE ── */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 32px; }
+.timeline-dot { position: absolute; left: -24px; top: 4px; width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--white); }
+.timeline-dot.blue { background: var(--blue); }
+.timeline-dot.green { background: var(--green); }
+.timeline-dot.amber { background: var(--amber); }
+.timeline-dot.purple { background: var(--purple); }
+.timeline-phase { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.timeline-phase.blue { color: var(--blue); }
+.timeline-phase.green { color: var(--green); }
+.timeline-phase.amber { color: var(--amber); }
+.timeline-phase.purple { color: var(--purple); }
+
+/* ── CRITIQUE BOX ── */
+.critique { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 20px 24px; margin: 16px 0; }
+.critique h4 { color: var(--rose); margin-bottom: 8px; }
+.mitigate { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px 20px; margin-top: 8px; }
+.mitigate h4 { color: var(--green); font-size: 0.85rem; margin-bottom: 4px; }
+
+/* ── FOOTER ── */
+footer { background: var(--navy); color: #64748b; padding: 40px 0; font-size: 0.82rem; }
+footer a { color: #60a5fa; text-decoration: none; }
+
+/* ── UTIL ── */
+.mt8 { margin-top: 8px; }
+.mt16 { margin-top: 16px; }
+.mt24 { margin-top: 24px; }
+.mt32 { margin-top: 32px; }
+.mb8 { margin-bottom: 8px; }
+.mb16 { margin-bottom: 16px; }
+.mb24 { margin-bottom: 24px; }
+ul.bullets { padding-left: 20px; margin-top: 8px; }
+ul.bullets li { margin-bottom: 4px; font-size: 0.9rem; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+.strong-label { font-weight: 700; color: var(--navy-mid); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════ HERO ═══ -->
+<div class="hero">
+<div class="container">
+  <div class="hero-eyebrow">Enterprise AI Architecture | Confidential — Executive Briefing</div>
+  <h1>From Conversational Analytics<br>to Enterprise Intelligence Fabric</h1>
+  <p class="hero-sub">A federated multi-tier agent architecture for a global QSR leader — extending conversational analytics into deep insight generation and cross-domain business process automation at scale.</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Scale</div>
+      <div class="hero-meta-value">44,000 Restaurants</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Data Domains</div>
+      <div class="hero-meta-value">7 Enterprise Marts</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Architecture Tier</div>
+      <div class="hero-meta-value">Enterprise-Grade</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Prepared</div>
+      <div class="hero-meta-value">May 2026</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ EXEC BRIEF ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Executive Brief</div>
+  <h2>Three Decisions That Shape Everything</h2>
+  <p style="color:var(--text-muted); margin-bottom:28px;">The architecture rests on three foundational choices. Each has a real cost-of-wrong-decision — get any one of them wrong and the system either doesn't scale, becomes brittle under load, or accumulates the kind of complexity that blocks future capability expansion.</p>
+
+  <div class="grid-3">
+    <div class="card blue">
+      <div class="card-icon blue">①</div>
+      <h3>Two Pillars, Not One</h3>
+      <p>Analytics and process automation are <strong>architecturally incompatible</strong> if merged under a single orchestrator. Analytics is read-only, parallel, and embarrassingly stateless. Process automation has side effects, requires audit trails, demands human-in-the-loop approval, and runs asynchronously over hours or days. Separate orchestrators, separate deployment, separate auth scope — but unified session context at the enterprise layer.</p>
+    </div>
+    <div class="card green">
+      <div class="card-icon green">②</div>
+      <h3>Federated Orchestration, Not a God Agent</h3>
+      <p>A single orchestrator that knows everything will become a bottleneck, a reliability single-point-of-failure, and an unmaintainable accumulation of routing logic within 12 months. The architecture uses a <strong>thin Enterprise Orchestrator</strong> for cross-pillar routing and session management, with thick domain-specific orchestrators that own their business logic completely.</p>
+    </div>
+    <div class="card amber">
+      <div class="card-icon amber">③</div>
+      <h3>Insight ≠ Query Answer</h3>
+      <p>The existing system returns <em>results</em>. The new capability must return <em>understanding</em>. This requires a structurally different execution pattern: parallel fan-out to multiple data domains simultaneously, correlation with external market signals, and narrative synthesis that explains causality — not just reports metrics. This is not an incremental prompt change; it is a new architectural component: the <strong>Insight Engine</strong>.</p>
+    </div>
+  </div>
+
+  <div class="callout navy mt24">
+    <h4>What This Architecture Enables That Doesn't Exist Today</h4>
+    <p>A restaurant GM can ask: <em>"Why did my COGS spike 3 points last quarter?"</em> — and receive: a cross-domain correlation (supply chain + finance + operational data), commodity price context from external market data, a comparison to same-store peers in the same region, and an automatically triggered procurement investigation workflow with an approval chain — all from a single natural language query, in under 30 seconds.</p>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════ CRITIQUE ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Honest Gap Analysis</div>
+  <h2>What the Current Architecture Gets Right — and Where It Falls Short</h2>
+  <p style="color:var(--text-muted); margin-bottom:24px;">Before designing the target state, it is necessary to be precise about what the existing design optimizes for, what it was never designed to do, and where extending it naively creates structural debt.</p>
+
+  <div class="grid-2">
+    <div>
+      <h3 style="color:var(--green); margin-bottom:12px;">What's Right — Keep and Evolve</h3>
+      <ul class="bullets">
+        <li><strong>Domain SQL sub-agents</strong> — specialization reduces hallucination. A sales agent that only knows sales SQL is more reliable than a generalist. Keep this pattern, extend the domain coverage.</li>
+        <li><strong>Orchestrator-worker topology</strong> — correct at its level. Anthropic's canonical pattern for breadth-first tasks. The pattern is right; the scope needs to expand.</li>
+        <li><strong>Natural language → SQL intent classification</strong> — mature and working. Don't break it while adding insight generation on top of it.</li>
+        <li><strong>Domain-specific prompts per agent</strong> — correct isolation of business context. Each agent's prompt should know its domain deeply and nothing else.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:var(--rose); margin-bottom:12px;">Critical Gaps — Must Address</h3>
+      <ul class="bullets">
+        <li><strong>Query dispatch ≠ insight generation.</strong> Current architecture returns data. Insights require cross-domain correlation + external context + causal reasoning. Adding a prompt to existing agents won't close this gap.</li>
+        <li><strong>No agent identity layer.</strong> All agents likely share a service account. Process automation against Oracle Finance or SAP SuccessFactors requires per-agent credentials with scoped permissions. A finance agent cannot run under the same identity as an analytics agent.</li>
+        <li><strong>No process automation design.</strong> Process agents have side effects. They require deterministic execution chains (for SOX/audit), checkpointing for long-running flows, and approval gates. The analytics orchestrator was designed for none of this.</li>
+        <li><strong>No cross-regional data sovereignty handling.</strong> EU GDPR, APAC data residency laws, and NA compliance requirements differ materially. An agent that can query all regions uniformly is a compliance risk.</li>
+        <li><strong>Context grows unbounded.</strong> No strategy for managing context accumulation across long multi-turn sessions. At enterprise scale with heavy usage, this is a latency and cost issue.</li>
+        <li><strong>No external data integration.</strong> KPI analysis without commodity prices, macroeconomic indicators, or competitive benchmarks is incomplete. The data warehouse only holds what the company controls.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout amber mt24">
+    <h4>The Hidden Risk in "Just Extend the Current Architecture"</h4>
+    <p>The existing query orchestrator is designed for <strong>read-only, stateless, reversible</strong> operations. Adding process automation sub-agents under the same orchestrator violates the fundamental contract of that design. When a finance process agent executes a journal entry or an HR agent triggers a termination workflow, the orchestrator must handle failure, rollback, approval gating, and audit in ways it was never built for. The blast radius of a routing error in the current system is a bad SQL query. In a process automation context, it could be an unauthorized financial transaction.</p>
+  </div>
+</div>
+</section>
+
+<!-- ═════════════════════════════════════ PRINCIPLES ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Architecture Principles</div>
+  <h2>Seven Non-Negotiable Design Principles</h2>
+  <p style="color:var(--text-muted); margin-bottom:28px;">These principles are derived from Anthropic, Google ADK, and OpenAI's published architecture guidance combined with enterprise-scale requirements unique to this context. Every architectural decision traces back to at least one of these.</p>
+
+  <div class="grid-2" style="gap:16px;">
+    <div class="card">
+      <h4>P1 — Pillar Separation by Execution Contract</h4>
+      <p>Analytics agents and process agents are governed by incompatible execution contracts (stateless read vs. stateful write with side effects). They must live in separate orchestration pillars with separate auth models, deployment units, and failure domains. Shared infrastructure (data access, session store, observability) is permitted; shared orchestration logic is not.</p>
+    </div>
+    <div class="card">
+      <h4>P2 — Thin Enterprise Orchestrator, Thick Domain Orchestrators</h4>
+      <p>The Enterprise Orchestrator performs exactly one function: classify intent, route to the correct domain orchestrator(s), manage cross-pillar fan-out, and maintain session context. It contains zero business logic. Domain orchestrators own their routing, tool selection, and sub-agent lifecycle. Business logic cannot migrate upward into the enterprise layer — this is enforced by code review policy.</p>
+    </div>
+    <div class="card">
+      <h4>P3 — Centralized Catalog, Distributed Runtime</h4>
+      <p>The Agent Registry is the single source of truth for agent capabilities, input/output schemas, SLA contracts, compliance tags, and ownership. But routing decisions use a locally cached copy of the catalog, refreshed on deployment or health change. No agent call traverses the registry at runtime. This gives governance without adding latency.</p>
+    </div>
+    <div class="card">
+      <h4>P4 — Context by Envelope, Not Full History Propagation</h4>
+      <p>Passing full conversation history across orchestrator boundaries is expensive, potentially leaks sensitive context across pillar boundaries, and creates enormous token overhead at scale. The Enterprise Orchestrator extracts a semantically compact <em>Context Envelope</em> — intent summary, user identity, regional context, and ≤3 semantically relevant prior turns — before routing to any domain orchestrator.</p>
+    </div>
+    <div class="card">
+      <h4>P5 — Deterministic Chains for Governed Processes</h4>
+      <p>Finance and HR process agents execute in deterministic sequential chains (Google ADK <span class="mono">SequentialAgent</span> pattern), not LLM-driven dynamic routing. The LLM determines <em>what</em> to do; the orchestration structure determines <em>how it executes</em>. This is non-negotiable for SOX auditability (Finance) and GDPR compliance (HR). Every step is checkpointed to durable storage before execution.</p>
+    </div>
+    <div class="card">
+      <h4>P6 — Model Tiering as Architectural Design, Not Optimization</h4>
+      <p>Every agent in the system is assigned a model tier at design time: Haiku-class for intent classification and data retrieval, Sonnet-class for domain orchestration and analysis, Opus-class for cross-domain synthesis and novel insight generation. Escalation paths are defined for when complexity exceeds the assigned tier. Model cost and latency are architectural constraints, not afterthoughts.</p>
+    </div>
+    <div class="card">
+      <h4>P7 — Least Privilege Identity by Default</h4>
+      <p>Every agent has a unique service identity with credentials scoped only to the tools it is explicitly permitted to call. A Sales SQL Agent has read-only access to the sales data mart and nothing else. A Finance Process Agent has write access to Oracle Finance APIs in its approved process scope only. Shared service accounts are prohibited for any agent with external system access.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════ MAIN ARCH DIAGRAM ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Architecture Overview</div>
+  <h2>The Enterprise Intelligence Fabric</h2>
+  <p style="color:var(--text-muted); margin-bottom:28px;">A two-tier federated agent architecture with two parallel execution pillars. Every component maps to a specific agent type based on its execution contract, trust boundary, and governance requirement.</p>
+
+  <div class="arch-diagram">
+    <!-- Layer 0: Users -->
+    <div class="arch-layer">
+      <div class="arch-layer-label">Access Layer — User Surfaces</div>
+      <div class="arch-boxes">
+        <div class="arch-box user"><div class="box-title">Web App</div><div class="box-sub">BI Portal</div></div>
+        <div class="arch-box user"><div class="box-title">Mobile App</div><div class="box-sub">Restaurant & Corp</div></div>
+        <div class="arch-box user"><div class="box-title">Teams / Slack</div><div class="box-sub">Chat Interface</div></div>
+        <div class="arch-box user"><div class="box-title">REST / GraphQL</div><div class="box-sub">API Consumers</div></div>
+        <div class="arch-box user"><div class="box-title">Embedded</div><div class="box-sub">ERP / HRIS UI</div></div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓ All traffic enters through single ingress ↓</div>
+
+    <!-- Layer 1: Gateway -->
+    <div class="arch-layer">
+      <div class="arch-layer-label">Infrastructure Layer — Agent Gateway</div>
+      <div class="arch-boxes">
+        <div class="arch-box gateway" style="flex:2;"><div class="box-title">Agent Gateway</div><div class="box-sub">SSO / OAuth 2.1 · Rate limiting · Token budgets · Input sanitization · Audit log · Regional routing (NA / EU / APAC)</div></div>
+        <div class="arch-box infra"><div class="box-title">Agent Registry</div><div class="box-sub">Centralized catalog · Version control · Health status · Compliance tags</div></div>
+        <div class="arch-box infra"><div class="box-title">Observability</div><div class="box-sub">OpenTelemetry · Distributed traces · Cost tracking · SLA dashboards</div></div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓ Authenticated, budget-gated, routed request ↓</div>
+
+    <!-- Layer 2: Enterprise Orch -->
+    <div class="arch-layer">
+      <div class="arch-layer-label">Tier 1 Orchestration — Enterprise Orchestrator (Claude Opus)</div>
+      <div class="arch-boxes">
+        <div class="arch-box ent-orch" style="flex:1;">
+          <div class="box-title">Enterprise Orchestrator</div>
+          <div class="box-sub">Intent classification · Cross-pillar fan-out · Context Envelope extraction · Session state management · Human escalation routing</div>
+        </div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓ Routes by pillar — single, parallel, or synthesized ↓</div>
+
+    <!-- Layer 3: Domain Orchestrators -->
+    <div class="arch-layer">
+      <div class="arch-layer-label">Tier 2 Orchestration — Domain Orchestrators (Claude Sonnet)</div>
+      <div class="arch-boxes">
+        <div class="arch-box analytics-orch" style="flex:2;">
+          <div class="box-title">Analytics Orchestrator</div>
+          <div class="box-sub">SQL intent routing · Insight Engine activation · Cross-domain correlation · Viz selection (A2UI)</div>
+        </div>
+        <div class="arch-box process-orch" style="flex:1.5;">
+          <div class="box-title">Finance Process Orchestrator</div>
+          <div class="box-sub">ERP workflow routing · SOX checkpoint management · Approval gate control</div>
+        </div>
+        <div class="arch-box process-orch" style="flex:1.5;">
+          <div class="box-title">HR Process Orchestrator</div>
+          <div class="box-sub">HRIS workflow routing · GDPR compliance gating · SuccessFactors integration</div>
+        </div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓ Specialized agents and tools per domain ↓</div>
+
+    <!-- Layer 4: Agents -->
+    <div class="arch-layer">
+      <div class="arch-layer-label">Specialized Agents & Agentic Tools</div>
+      <div class="arch-boxes">
+        <div class="arch-box domain-agent"><div class="box-title">Sales SQL Agent</div><div class="box-sub">Haiku · Read-only</div></div>
+        <div class="arch-box domain-agent"><div class="box-title">Customer 360 Agent</div><div class="box-sub">Haiku · Read-only</div></div>
+        <div class="arch-box domain-agent"><div class="box-title">Supply Chain Agent</div><div class="box-sub">Haiku · Read-only</div></div>
+        <div class="arch-box domain-agent"><div class="box-title">Ops / Finance / HR Data Agents</div><div class="box-sub">Haiku · Read-only</div></div>
+        <div class="arch-box insight-agent"><div class="box-title">Insight Engine</div><div class="box-sub">Opus · ParallelAgent + Synthesizer</div></div>
+        <div class="arch-box insight-agent"><div class="box-title">Market Intel Agent</div><div class="box-sub">Sonnet · External data</div></div>
+        <div class="arch-box process-agent"><div class="box-title">AP/AR Process Agent</div><div class="box-sub">Sonnet · ERP write</div></div>
+        <div class="arch-box process-agent"><div class="box-title">Budget Variance Agent</div><div class="box-sub">Sonnet · ERP read+write</div></div>
+        <div class="arch-box process-agent"><div class="box-title">Talent Acq. Agent</div><div class="box-sub">Sonnet · SF write</div></div>
+        <div class="arch-box process-agent"><div class="box-title">Workforce Plan Agent</div><div class="box-sub">Sonnet · SF read+write</div></div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓ All agents read from shared Data Platform via scoped tools ↓</div>
+
+    <!-- Layer 5: Data + Systems -->
+    <div class="arch-layer">
+      <div class="arch-layer-label">Data & Systems Layer</div>
+      <div class="arch-boxes">
+        <div class="arch-box data" style="flex:3;"><div class="box-title">Enterprise Data Platform</div><div class="box-sub">Sales · Customer 360 · Supply Chain · Restaurant Ops · Finance · HR · Technology Data Marts</div></div>
+        <div class="arch-box data"><div class="box-title">External Market Data</div><div class="box-sub">Commodity prices · Macro indicators · Weather · Competitor intel</div></div>
+        <div class="arch-box systems"><div class="box-title">Oracle Finance ERP</div><div class="box-sub">AP/AR · GL · Budgets</div></div>
+        <div class="arch-box systems"><div class="box-title">SAP SuccessFactors</div><div class="box-sub">Talent · Payroll · Learning</div></div>
+        <div class="arch-box systems"><div class="box-title">Custom Apps</div><div class="box-sub">Restaurant Ops · POS · Mobile</div></div>
+      </div>
+    </div>
+    <div class="arch-note">Color key: Blue = Enterprise Orch · Green = Analytics Pillar · Amber = Process Pillar · Indigo = Insight Engine · Purple = Shared Infrastructure</div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════ AGENT TAXONOMY ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Agent Taxonomy</div>
+  <h2>What Type is Each Agent, and Why Does It Matter?</h2>
+  <p style="color:var(--text-muted); margin-bottom:24px;">The single most common architecture mistake is conflating agent types. An "orchestrator" that does SQL queries, or a "specialized agent" that also routes — each conflation erodes a design invariant and eventually produces an unmaintainable system. The table below provides the decision framework.</p>
+
+  <div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr>
+        <th>Agent Type</th>
+        <th>When to Use</th>
+        <th>What It Must NOT Do</th>
+        <th>Model Tier</th>
+        <th>Examples in This System</th>
+        <th>ADK Pattern</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Agentic Tool</strong><br><span class="tag slate">Stateless</span></td>
+        <td>Atomic, deterministic, no LLM reasoning needed. Single-purpose function call. No state. No memory.</td>
+        <td>LLM calls. Routing decisions. State management.</td>
+        <td><span class="tag slate">No model</span></td>
+        <td>SQL executor, ERP API call, vector store lookup, external API fetch</td>
+        <td><span class="mono">FunctionTool</span></td>
+      </tr>
+      <tr>
+        <td><strong>Domain SQL Agent</strong><br><span class="tag green">Specialized</span></td>
+        <td>Domain-scoped question answering via SQL. Knows one data mart deeply. Generates and validates SQL. Returns structured results.</td>
+        <td>Cross-domain reasoning. Insight synthesis. Routing to other agents.</td>
+        <td><span class="tag green">Haiku</span></td>
+        <td>Sales SQL Agent, Customer 360 Agent, Supply Chain Agent</td>
+        <td><span class="mono">LlmAgent + AgentTool</span></td>
+      </tr>
+      <tr>
+        <td><strong>Process Agent</strong><br><span class="tag amber">Specialized</span></td>
+        <td>Executes a specific business process step with side effects. Writes to external systems. Requires auth scope. Checkpointed.</td>
+        <td>Routing. Data warehouse queries (uses shared Data Tool instead). Cross-process orchestration.</td>
+        <td><span class="tag amber">Sonnet</span></td>
+        <td>AP/AR Agent, Talent Acquisition Agent, Budget Variance Agent</td>
+        <td><span class="mono">LlmAgent</span> within <span class="mono">SequentialAgent</span></td>
+      </tr>
+      <tr>
+        <td><strong>Insight Engine</strong><br><span class="tag purple">Synthesizer</span></td>
+        <td>Receives multiple query results + external market signals. Performs causal analysis. Generates narrative insight with sentiment, headline, body, why, and recommended action.</td>
+        <td>Direct data queries (delegates to SQL agents). ERP/HRIS writes.</td>
+        <td><span class="tag purple">Opus</span></td>
+        <td>Cross-Domain Insight Synthesizer, Correlation Agent</td>
+        <td><span class="mono">ParallelAgent</span> (fan-out) + <span class="mono">LlmAgent</span> (synthesis)</td>
+      </tr>
+      <tr>
+        <td><strong>Domain Orchestrator</strong><br><span class="tag blue">Orchestrator</span></td>
+        <td>Routes within one pillar. Knows its domain's agents and their capabilities. Manages sub-agent lifecycle within its pillar. Owns context within domain scope.</td>
+        <td>Cross-pillar routing. Enterprise session management. Business logic outside its domain.</td>
+        <td><span class="tag blue">Sonnet</span></td>
+        <td>Analytics Orchestrator, Finance Process Orchestrator, HR Process Orchestrator</td>
+        <td><span class="mono">LlmAgent</span> + <span class="mono">AgentTool</span> sub-agents</td>
+      </tr>
+      <tr>
+        <td><strong>Enterprise Orchestrator</strong><br><span class="tag blue">Meta-Router</span></td>
+        <td>Classifies cross-pillar intent. Routes to one or more domain orchestrators. Manages Context Envelope. Handles cross-pillar synthesis. Escalation and human-in-the-loop routing.</td>
+        <td>Business logic of any domain. Direct agent calls below domain orchestrator layer. Accumulating state beyond session context.</td>
+        <td><span class="tag purple">Opus</span></td>
+        <td>Enterprise Orchestrator (single instance)</td>
+        <td><span class="mono">LlmAgent</span> with domain orchestrators as <span class="mono">AgentTool</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════ ANALYTICS PILLAR ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Analytics Pillar</div>
+  <h2>Evolution: From Query Dispatch to the Insight Engine</h2>
+  <p style="color:var(--text-muted); margin-bottom:24px;">The existing conversational analytics system is a strong foundation. The evolution does not replace it — it adds two new capabilities on top of the proven query layer: the Insight Engine for causal analysis, and External Market Intelligence integration for context the data warehouse cannot provide.</p>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="mb16">What Stays (Evolved, Not Replaced)</h3>
+      <div class="card">
+        <h4>Domain SQL Agents — Deepen, Don't Consolidate</h4>
+        <p>Keep domain-specific SQL agents. The instinct to consolidate them into a single "data agent" is wrong — specialization is what produces reliable SQL. Expand coverage: add dedicated agents for Operations, Finance, and HR data marts if not already present. Each agent gets a tighter, more domain-aware prompt with explicit schema knowledge.</p>
+        <div class="mt8" style="font-size:0.85rem; color:var(--text-muted);">Each SQL agent: <span class="tag green">Haiku model</span> <span class="tag slate">Read-only credentials</span> <span class="tag slate">Single data mart scope</span></div>
+      </div>
+    </div>
+    <div>
+      <h3 class="mb16">What's New — The Insight Engine</h3>
+      <div class="card purple">
+        <h4>Insight Engine — The Architectural Innovation</h4>
+        <p>The Insight Engine is not a single agent. It is a <strong>ParallelAgent fan-out</strong> that dispatches to multiple domain SQL agents simultaneously, then pipes all results into a dedicated Insight Synthesizer LLM (Opus-class) with access to external market signals.</p>
+        <p class="mt8">Triggered by the Analytics Orchestrator when: (1) query spans multiple domains, (2) user asks "why" or "what drove", (3) explicit analysis request, or (4) KPI deviation exceeds defined threshold.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="mt32 mb16">Insight Engine Execution Flow</h3>
+  <div class="callout blue">
+    <strong>Example query:</strong> "Why did same-store sales decline 4% in the Southeast last month?"
+  </div>
+  <div class="flow mt16">
+    <div class="flow-step blue">Analytics Orchestrator<br><small>detects "why" + cross-domain intent</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step purple">Insight Engine activated<br><small>ParallelAgent fan-out</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step green">Parallel:<br><small>Sales · Ops · Customer · Supply Chain agents run simultaneously</small></div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-step amber">Parallel:<br><small>Market Intel Agent: weather, commodity prices, macro, competitive</small></div>
+  </div>
+  <div class="flow mt8">
+    <div class="flow-step purple">Insight Synthesizer (Opus)<br><small>All results + external context + QSR benchmarks → causal narrative</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step blue">Structured Output:<br><small>headline / body / causality chain / sentiment / recommended action</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step green">Rendered Surface<br><small>A2UI InsightBanner + supporting charts</small></div>
+  </div>
+
+  <div class="callout amber mt24">
+    <h4>Critical Design: Graceful Degradation on External Data Failure</h4>
+    <p>The External Market Intelligence call has a hard 3-second timeout. On timeout or API failure, the Insight Synthesizer runs with internal data only, appending a data-availability flag to the output. The user still receives meaningful insight — the absence of external context is surfaced transparently, not silently dropped or propagated as an error. This is an SLA contract defined in the Agent Registry.</p>
+  </div>
+
+  <div class="grid-2 mt24">
+    <div class="card">
+      <h4>External Market Intelligence Agent</h4>
+      <p>Dedicated agent (Sonnet) that integrates with:</p>
+      <ul class="bullets mt8">
+        <li>Commodity price indexes (beef, chicken, packaging)</li>
+        <li>Macroeconomic indicators (CPI, consumer confidence, unemployment by region)</li>
+        <li>Weather data (relevant for drive-thru / outdoor dining patterns)</li>
+        <li>Consumer sentiment feeds</li>
+        <li>Competitive activity signals (new entrants, promotional events)</li>
+      </ul>
+      <p class="mt8"><strong>Critical:</strong> This data does NOT live in the enterprise data warehouse. This is the gap that makes current analytics incomplete. External data is fetched at query time via MCP-compliant tool integrations, not pre-loaded.</p>
+    </div>
+    <div class="card">
+      <h4>Historical Benchmark Agent</h4>
+      <p>Provides context that raw query results lack:</p>
+      <ul class="bullets mt8">
+        <li>Same-store sales comps (YoY, QoQ, by region and tier)</li>
+        <li>Peer store cohort benchmarking (store performance tier)</li>
+        <li>QSR industry benchmarks (if licensed data is available)</li>
+        <li>Fiscal calendar context (holiday weeks, promotional periods)</li>
+      </ul>
+      <p class="mt8">This agent reads exclusively from the enterprise data warehouse. It is a Haiku-class domain agent, not an insight agent. It provides inputs to the Insight Synthesizer, not conclusions.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════ PROCESS PILLAR ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Process Automation Pillar</div>
+  <h2>Net-New: Business Process Automation with Governance</h2>
+  <p style="color:var(--text-muted); margin-bottom:24px;">Process automation agents are architecturally distinct from analytics agents in four critical ways: they have <strong>side effects</strong>, require <strong>audit trails</strong>, run <strong>asynchronously</strong> over extended time horizons, and demand <strong>human-in-the-loop</strong> at defined approval points. These are not edge cases — they are the defining characteristics of the workload.</p>
+
+  <div class="grid-2">
+    <div class="card amber">
+      <h3>Finance Process Agents</h3>
+      <p class="mt8">Target system: Oracle Finance ERP</p>
+      <ul class="bullets mt8">
+        <li><strong>AP/AR Agent</strong> — invoice matching, payment scheduling, exception routing. Reads supplier data from ERP, correlates with purchase orders from supply chain DW, flags discrepancies for human approval.</li>
+        <li><strong>Budget Variance Agent</strong> — triggered on KPI alert. Pulls actuals from Finance DW, compares to budget, generates variance analysis, routes to finance controller for action with pre-populated commentary.</li>
+        <li><strong>COGS Investigation Agent</strong> — cross-pillar: queries Supply Chain Agent for commodity pricing, correlates with Finance DW for margin data, drafts procurement escalation workflow for approval.</li>
+        <li><strong>Period Close Assistant</strong> — guides month-end close checklist, validates reconciliation completeness, surfaces anomalies before close.</li>
+      </ul>
+      <div class="mt16">
+        <span class="tag amber">SOX-compliant audit trail</span>
+        <span class="tag amber">Dual-approval for GL writes</span>
+        <span class="tag amber">Materiality thresholds</span>
+      </div>
+    </div>
+    <div class="card process-orch" style="border-top:3px solid var(--amber);">
+      <h3>HR Process Agents</h3>
+      <p class="mt8">Target system: SAP SuccessFactors</p>
+      <ul class="bullets mt8">
+        <li><strong>Talent Acquisition Agent</strong> — creates requisitions based on workforce plan data, screens JD alignment, coordinates interview scheduling, produces standardized hiring recommendations with EEO compliance flags.</li>
+        <li><strong>Workforce Planning Agent</strong> — queries HR DW for headcount actuals, correlates with sales forecast from Sales DW, models staffing scenarios for restaurant GMs. Read-heavy with write escalation for manager approval.</li>
+        <li><strong>Performance Management Agent</strong> — aggregates performance data, generates review narratives, flags calibration outliers, routes to HRBP with recommended actions. PII-gated: data never leaves approved regional instance.</li>
+        <li><strong>Onboarding Coordinator Agent</strong> — creates onboarding plans, triggers training assignments in LMS, tracks 30/60/90-day milestones.</li>
+      </ul>
+      <div class="mt16">
+        <span class="tag blue">GDPR/regional data residency</span>
+        <span class="tag blue">PII-scoped credentials</span>
+        <span class="tag blue">Manager approval gates</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="mt32 mb16">Process Execution Pattern — Finance Budget Variance (Example)</h3>
+  <div class="callout blue">
+    <strong>Trigger:</strong> Automated alert — Store cluster Q3 COGS exceeds budget by >5% for third consecutive month.
+  </div>
+  <div class="flow mt16" style="flex-wrap:wrap;">
+    <div class="flow-step amber">Finance Process Orch<br><small>SequentialAgent chain initiated</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step green">Data Tool<br><small>Pull actuals from Finance + Supply Chain DW</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step purple">Insight Engine<br><small>Correlate: commodity prices + ops data</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step amber">Budget Variance Agent<br><small>Draft variance narrative + recommended actions</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step blue">Human Gate<br><small>Finance Controller reviews &amp; approves</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step amber">ERP Write<br><small>Create procurement review task in Oracle</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step green">Audit Event<br><small>Checkpoint logged with full trace ID</small></div>
+  </div>
+
+  <div class="callout rose mt24">
+    <h4>Critical: Checkpointing Before Every ERP/HRIS Write</h4>
+    <p>Every process agent checkpoints its full execution state to a durable store (Redis + PostgreSQL) before any write to Oracle Finance or SAP SuccessFactors. If the write fails, the agent resumes from the checkpoint — not from the beginning. If a step is rejected at the human approval gate, the state is captured with rejection reason and the workflow is terminated cleanly with a full audit log. There is no "retry from scratch" pattern for write operations to systems of record.</p>
+  </div>
+
+  <div class="callout blue mt16">
+    <h4>Process Agents + Data Warehouse: The Bridge</h4>
+    <p>Process agents frequently need data warehouse context (e.g., the AP/AR agent needs supplier purchase history; the Talent Acquisition agent needs headcount targets). This is handled via a <strong>shared Data Access Tool</strong> — a scoped, read-only MCP tool registered in the Agent Registry that any authorized agent can call. Process agents do NOT directly invoke SQL agents. They call the Data Access Tool with a structured query schema. This keeps the process pillar decoupled from the analytics pillar's internal routing logic.</p>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════ SESSION & CONTEXT ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Cross-Cutting Concerns</div>
+  <h2>Session, Context, Registry, Security & Observability</h2>
+
+  <!-- Session -->
+  <h3 class="mb16">Session & Context Architecture</h3>
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <h4>Context Envelope Pattern</h4>
+        <p>Rather than forwarding full conversation history across orchestrator boundaries, the Enterprise Orchestrator constructs a <em>Context Envelope</em> for each downstream domain orchestrator:</p>
+        <ul class="bullets mt8">
+          <li><strong>User identity</strong> + role + regional scope</li>
+          <li><strong>Intent summary</strong> — compressed statement of what the user needs</li>
+          <li><strong>Relevant prior turns</strong> — semantic retrieval of ≤3 turns related to current intent (not sequential history)</li>
+          <li><strong>Active business context</strong> — current fiscal period, active escalations, user's domain focus</li>
+          <li><strong>Cross-pillar flags</strong> — is the analytics pillar currently processing a related query?</li>
+        </ul>
+        <p class="mt8">Result: domain orchestrators get rich context without token explosion. A full 40-turn session becomes a ~500-token envelope.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h4>State Scoping (Google ADK Model)</h4>
+        <table style="font-size:0.82rem; margin-top:8px;">
+          <thead><tr><th>Scope</th><th>Prefix</th><th>What Lives Here</th></tr></thead>
+          <tbody>
+            <tr><td>Invocation temp</td><td><span class="mono">temp:</span></td><td>Scratch data for this single agent invocation. Never persisted.</td></tr>
+            <tr><td>Session</td><td><span class="mono">(none)</span></td><td>Current conversation state, active intent, intermediate results.</td></tr>
+            <tr><td>User</td><td><span class="mono">user:</span></td><td>Preferences, role, region, language, notification settings. Persists across sessions.</td></tr>
+            <tr><td>App</td><td><span class="mono">app:</span></td><td>Fiscal calendar, global KPI benchmarks, active incidents. All users see the same values.</td></tr>
+          </tbody>
+        </table>
+        <p class="mt8">Session persistence: <span class="mono">DatabaseSessionService</span> (PostgreSQL) for all production deployments. <span class="mono">InMemorySessionService</span> for local dev only. Vertex AI Agent Engine provides managed session storage at GCP scale.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt16">
+    <h4>Long-Term Memory Strategy</h4>
+    <div class="grid-2">
+      <div>
+        <p><strong>Vector Store (Semantic Memory)</strong><br>Stores embeddings of: prior insight narratives, resolved investigation summaries, user query patterns. Retrieved at session start by semantic similarity to current intent. Powers the "relevant prior turns" selection in Context Envelopes. Chunked + deduplicated weekly.</p>
+      </div>
+      <div>
+        <p><strong>Structured KV Store (Factual Memory)</strong><br>Stores: known business benchmarks, fiscal calendar, store tier classifications, active regulatory flags per region. Read by the Enterprise Orchestrator to populate app-scoped state before every session. Updated by automated data pipeline, not agents.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Registry -->
+  <h3 class="mb16 mt16">Agent Registry & Discovery Governance</h3>
+  <div class="callout blue">
+    <h4>Decision: Centralized Catalog + Distributed Runtime Discovery</h4>
+    <p>Industry research confirms: centralized registries for governance, distributed caching for runtime performance. At 44K restaurants generating analytics traffic, any per-request registry lookup is a bottleneck. Each orchestrator caches the registry at startup. Health state changes are pushed via event stream (not polled). New agent deployments invalidate orchestrator caches automatically.</p>
+  </div>
+  <div class="grid-3 mt16">
+    <div class="card">
+      <h4>What the Registry Stores Per Agent</h4>
+      <ul class="bullets mt8">
+        <li>Name, version, description (critical for LLM routing)</li>
+        <li>Input / output schemas (JSON Schema)</li>
+        <li>Declared P95 latency SLA</li>
+        <li>Compliance tags (SOX, GDPR, PCI, PII)</li>
+        <li>Required auth scope</li>
+        <li>Owner team + on-call contact</li>
+        <li>Upstream dependencies</li>
+        <li>Deprecation status + successor agent</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Runtime Discovery Flow</h4>
+      <ul class="bullets mt8">
+        <li>Orchestrators load registry snapshot at startup</li>
+        <li>Registry pushes health delta events on: agent deployment, health check failure, SLA breach</li>
+        <li>Orchestrators apply delta in-memory (no restart)</li>
+        <li>No agent call touches the registry at runtime</li>
+        <li>Compliance checks happen at the Gateway layer using registry metadata — not at agent call time</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Agent Versioning Policy</h4>
+      <ul class="bullets mt8">
+        <li>Semantic versioning: MAJOR.MINOR.PATCH</li>
+        <li>Breaking schema changes → MAJOR version. Old version kept alive for 30-day migration window.</li>
+        <li>Prompt-only changes → PATCH version. Old orchestrators still route to compatible version.</li>
+        <li>A/B testing: registry supports traffic split annotations (e.g., 90% v1.2, 10% v1.3-experimental)</li>
+        <li>Rollback: previous version never deleted until new version passes 7-day stability gate</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Security -->
+  <h3 class="mb16 mt16">Security Architecture</h3>
+  <div class="grid-2">
+    <div>
+      <div class="card rose">
+        <h4>Agent Identity & Least Privilege</h4>
+        <ul class="bullets mt8">
+          <li>Every agent has a <strong>unique service identity</strong> (OIDC token or Workload Identity on GCP)</li>
+          <li>Analytics agents: read-only access to their assigned data mart only</li>
+          <li>Process agents: scoped write access to their assigned external system, defined process scope only</li>
+          <li>Enterprise + Domain Orchestrators: access to invoke sub-agents only — no direct data access</li>
+          <li>Credentials are rotated automatically; agents never hold long-lived secrets</li>
+          <li>Per-agent audit logs are non-repudiable (append-only, signed)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h4>Prompt Injection Defense</h4>
+        <p>At enterprise scale, adversarial content in external data sources (market intelligence APIs, user-submitted data, restaurant notes) can hijack agent behavior. Defenses:</p>
+        <ul class="bullets mt8">
+          <li><strong>Input sanitization at the Gateway</strong> — strip prompt-like patterns from user input</li>
+          <li><strong>Tool output validation</strong> — external data tool results are schema-validated before being passed to LLM context</li>
+          <li><strong>Instruction hierarchy</strong> — system prompts are injected at the infrastructure layer, not the user input layer</li>
+          <li><strong>Output validation</strong> — structured output schemas enforced at inference time (constrained decoding)</li>
+          <li>Regular red-team exercises against production agent chains</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt16">
+    <h4>Regional Compliance Routing</h4>
+    <p>The Agent Gateway enforces regional routing based on the user's authenticated regional scope. EU users: agent calls are routed to EU-deployed agent instances. HR data (GDPR-sensitive) never leaves the declared processing region regardless of which orchestrator initiates the call. The compliance tag in the Agent Registry triggers this enforcement automatically. No agent needs to know about GDPR — the infrastructure layer handles it.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Observability -->
+  <h3 class="mb16 mt16">Observability Architecture</h3>
+  <div class="grid-3">
+    <div class="card">
+      <h4>Distributed Tracing (OpenTelemetry)</h4>
+      <p>Every agent invocation — from Enterprise Orchestrator down to individual SQL agent — carries a propagated trace context. A single user query produces a trace spanning the full agent chain: intent classification → domain orchestrator → parallel SQL agents → synthesizer. Traces exported to a centralized Collector (not per-agent sidecars). Tail-based sampling: 100% for errors and SLA breaches, 5% for normal traffic.</p>
+    </div>
+    <div class="card">
+      <h4>Cost & Token Budgets</h4>
+      <p>Token usage tracked per trace, per agent, per user, per domain, per day. Per-request <span class="mono">max_tokens</span> enforced at the Gateway. Per-session token budgets block runaway loops. Model tiering decisions are validated against actual cost data monthly. Any agent consistently exceeding its budget triggers a prompt/model review.</p>
+    </div>
+    <div class="card">
+      <h4>Business KPI Correlation</h4>
+      <p>Agent operational metrics (latency, error rate, insight quality scores) are correlated with business outcomes (user retention, query satisfaction ratings, process completion rates). This is the feedback loop that justifies model upgrades or agent redesign. Without this correlation, the architecture drifts based on engineering intuition rather than business evidence.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════ PERFORMANCE ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Performance Architecture</div>
+  <h2>Built to Perform at 44,000-Restaurant Scale</h2>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="mb16">Model Tiering Decision Matrix</h3>
+      <table>
+        <thead><tr><th>Workload</th><th>Model</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td>Intent classification</td><td><span class="tag slate">Haiku</span></td><td>High-frequency, simple classification. Latency-sensitive.</td></tr>
+          <tr><td>Domain SQL generation</td><td><span class="tag green">Haiku</span></td><td>Well-structured task with schema context. Does not need large model.</td></tr>
+          <tr><td>Domain orchestration routing</td><td><span class="tag blue">Sonnet</span></td><td>Requires judgment on sub-agent selection. Moderate complexity.</td></tr>
+          <tr><td>Process agent execution</td><td><span class="tag blue">Sonnet</span></td><td>Business logic reasoning, ERP command formation.</td></tr>
+          <tr><td>Market Intel synthesis</td><td><span class="tag blue">Sonnet</span></td><td>Structured external data analysis.</td></tr>
+          <tr><td>Insight synthesis</td><td><span class="tag purple">Opus</span></td><td>Causal analysis, novel correlation, narrative generation. Quality-critical.</td></tr>
+          <tr><td>Enterprise Orchestrator</td><td><span class="tag purple">Opus</span></td><td>Cross-pillar intent decomposition, cross-domain synthesis.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3 class="mb16">Latency Mitigation Strategies</h3>
+      <div class="card">
+        <h4>Prompt Caching</h4>
+        <p>System prompts, business context, and agent descriptions are stable content — cached at the provider layer (Anthropic prompt caching, GCP Vertex caching). High-frequency queries against the same KPI domain reuse cached prompt prefixes. Estimated 40–60% cost reduction on repeat analytical workloads.</p>
+      </div>
+      <div class="card mt16">
+        <h4>Async Processing for Non-Interactive Workflows</h4>
+        <p>Process automation workflows (AP/AR processing, period close, workforce planning) are submitted to an async queue (Pub/Sub or Kafka). Users receive a job ID and webhook notification. The synchronous response path is reserved for interactive query-response cycles only (&lt;10s SLA).</p>
+      </div>
+      <div class="card mt16">
+        <h4>Circuit Breakers + Graceful Degradation</h4>
+        <p>Each agent boundary has a circuit breaker. On failure: (1) exponential backoff with jitter, (2) fallback to cached results if available, (3) graceful partial response with explicit data-availability flag, (4) never a silent failure. ERP and HRIS calls use the shortest timeout budgets — external system latency does not propagate to the user.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════ ROADMAP ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Implementation Roadmap</div>
+  <h2>Four Phases — Capability Before Infrastructure</h2>
+  <p style="color:var(--text-muted); margin-bottom:28px;">The roadmap is sequenced to deliver business value early while building the infrastructure that makes later phases possible. Do not build the Enterprise Orchestrator before you have two pillars that need orchestrating.</p>
+
+  <div class="grid-2">
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot blue"></div>
+        <div class="timeline-phase blue">Phase 1 — Months 0–6: Insight Engine</div>
+        <h4>Add Deep Analysis to Existing Analytics</h4>
+        <p>Build the Insight Engine on top of the existing query system. Add the External Market Intelligence integration. Add the Insight Synthesizer (Opus). Wire cross-domain correlation. Do NOT change the existing SQL agents or Analytics Orchestrator — add the Insight Engine as an additional capability the orchestrator can delegate to.</p>
+        <p class="mt8"><strong>Business outcome:</strong> Analysts get causal insight, not just data. "Why" questions become answerable.</p>
+        <ul class="bullets mt8">
+          <li>External market data connector (commodity prices, macroeconomic, weather)</li>
+          <li>ParallelAgent fan-out pattern implemented</li>
+          <li>Insight Synthesizer with structured output (headline/body/why/sentiment/action)</li>
+          <li>A2UI InsightBanner surface updated for richer narrative</li>
+          <li>Observability baseline: distributed tracing live</li>
+        </ul>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot green"></div>
+        <div class="timeline-phase green">Phase 2 — Months 6–12: First Process Pillar (Finance)</div>
+        <h4>Finance Process Automation with Data Awareness</h4>
+        <p>Build the Finance Process Orchestrator and first two process agents (Budget Variance, AP/AR). Establish: SequentialAgent checkpointing, Oracle Finance ERP integration, SOX-compliant audit trail, human approval gate pattern. Prove the cross-pillar data bridge (process agent → Data Access Tool → DW).</p>
+        <p class="mt8"><strong>Business outcome:</strong> Finance team handles budget variance investigations 10× faster. AP/AR exception routing is automated.</p>
+        <ul class="bullets mt8">
+          <li>Finance Process Orchestrator deployed independently from Analytics</li>
+          <li>Oracle Finance ERP MCP tool integration</li>
+          <li>Checkpoint store (PostgreSQL) operational</li>
+          <li>Human approval gate UI (Teams / web)</li>
+          <li>Per-agent identity + credential store</li>
+          <li>Agent Registry v1 — catalog for all deployed agents</li>
+        </ul>
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot amber"></div>
+        <div class="timeline-phase amber">Phase 3 — Months 12–18: HR Pillar + Enterprise Orchestrator</div>
+        <h4>Expand Process + Introduce Cross-Pillar Orchestration</h4>
+        <p>Build HR Process Orchestrator and first HR agents (Talent Acquisition, Workforce Planning). Once two independent pillars exist, introduce the Enterprise Orchestrator to handle cross-pillar routing and the Context Envelope pattern. GDPR regional deployment for EU HR data.</p>
+        <p class="mt8"><strong>Business outcome:</strong> Workforce planning integrates sales forecasts automatically. Cross-domain questions ("analyze sales decline and flag understaffing correlation") become single-query capable.</p>
+        <ul class="bullets mt8">
+          <li>SAP SuccessFactors MCP tool integration</li>
+          <li>GDPR-compliant EU regional deployment</li>
+          <li>Enterprise Orchestrator with Context Envelope extraction</li>
+          <li>Semantic memory (vector store) for cross-session context</li>
+          <li>Full Agent Registry with versioning, compliance tags, health feeds</li>
+          <li>Cost dashboard and model tiering optimization</li>
+        </ul>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot purple"></div>
+        <div class="timeline-phase purple">Phase 4 — Months 18–24: Federated Mesh Capabilities</div>
+        <h4>Restaurant Operations Agents + A2A Protocol</h4>
+        <p>Expand to restaurant operations process agents (equipment maintenance, labor optimization). Introduce A2A (Agent-to-Agent) protocol for cross-organizational agent interoperability (franchisee agents, supplier agents). Implement full agent mesh capabilities for independent regional deployments that federate to a central catalog.</p>
+        <p class="mt8"><strong>Business outcome:</strong> Restaurant GMs have autonomous agents managing their operations proactively. The architecture is extensible to franchise partners and supplier ecosystems without central infrastructure bottleneck.</p>
+        <ul class="bullets mt8">
+          <li>Restaurant Ops Process Orchestrator + agents</li>
+          <li>A2A protocol for franchisee/supplier agent federation</li>
+          <li>Distributed agent mesh with federated catalog</li>
+          <li>Proactive alerting: agents that push insights vs wait for questions</li>
+          <li>Full cross-regional deployment with data sovereignty enforcement</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════ CRITIQUE ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Architectural Self-Critique</div>
+  <h2>Where This Architecture Could Fail</h2>
+  <p style="color:var(--text-muted); margin-bottom:24px;">Architecture quality is judged not only by what it gets right but by how honestly it accounts for where it will be wrong. The following are this architecture's genuine failure modes — not theoretical risks but structural vulnerabilities that require active mitigation.</p>
+
+  <div class="critique">
+    <h4>Risk 1: Enterprise Orchestrator Becomes a God Agent Over Time</h4>
+    <p>The Enterprise Orchestrator starts as a thin meta-router. Within 12 months, as teams ask for "just one more routing rule" or "just handle this edge case here," it accumulates business logic from every domain. This is the most common failure mode in multi-tier architectures. Once business logic enters the enterprise layer, it cannot be cleanly extracted without a full rewrite.</p>
+    <div class="mitigate">
+      <h4>Mitigation:</h4>
+      <p>Enforce an architectural fitness function: the Enterprise Orchestrator's prompt file has a maximum token budget (enforced in CI). Any business logic addition is flagged by PR review policy. Quarterly architecture audits check for domain-specific terms in the enterprise orchestrator's prompt.</p>
+    </div>
+  </div>
+
+  <div class="critique">
+    <h4>Risk 2: Context Envelope Loses Critical Prior Turns</h4>
+    <p>The Context Envelope compresses session context to improve performance. But semantic retrieval of "relevant prior turns" can miss critical but semantically distant context. If a user spent 10 turns analyzing a financial anomaly and then asks a process automation question, the Finance Process Orchestrator may not receive the analytical context that makes the process request meaningful. The envelope is an approximation, not a guarantee of context fidelity.</p>
+    <div class="mitigate">
+      <h4>Mitigation:</h4>
+      <p>The Enterprise Orchestrator maintains the full session store. If the process result lacks coherence with session history (detected by a lightweight consistency checker), it can re-request the envelope with an expanded prior-turns window. The fallback is slower but correct. Context Envelope quality is a measured metric in the observability layer.</p>
+    </div>
+  </div>
+
+  <div class="critique">
+    <h4>Risk 3: Process Agent Scope Creep — Permissions Accumulate Over Time</h4>
+    <p>Process agents are launched with narrow, scoped permissions. As new use cases emerge, teams add permissions incrementally rather than creating new scoped agents. Within 18 months, agents that started with single-process authority end up with access to multiple ERP modules, broad read access to sensitive HR data, and write permissions that span their original design intent. This is not a hypothetical — it is the observed pattern in every enterprise automation initiative.</p>
+    <div class="mitigate">
+      <h4>Mitigation:</h4>
+      <p>Permission sets for every process agent are defined in the Agent Registry and enforced by the credential management layer — not by the agent's prompt. Adding a permission requires a registry update + security review + approval from the data owner. Agents cannot accumulate permissions through prompt changes alone. Quarterly least-privilege audits compare declared permissions against observed usage via audit logs.</p>
+    </div>
+  </div>
+
+  <div class="critique">
+    <h4>Risk 4: The Insight Engine's External Data Dependency Degrades SLA</h4>
+    <p>The Insight Engine's value depends on external market intelligence. As the system matures, the team will want to add more external data sources, increase their freshness, and reduce the timeout threshold from 3 seconds. Each of these increases the risk that the external data path degrades the SLA for the entire Insight Engine invocation. External APIs are significantly less reliable than internal data warehouse queries.</p>
+    <div class="mitigate">
+      <h4>Mitigation:</h4>
+      <p>External data calls are structurally isolated in a dedicated External Market Intelligence Agent with its own circuit breaker, separate from the internal data fan-out. The Insight Synthesizer is designed to produce high-quality output from internal data alone; external data is enhancement, not prerequisite. Pre-fetch and cache high-frequency external data (commodity prices updated every 15 minutes) to eliminate real-time latency for common insight types.</p>
+    </div>
+  </div>
+
+  <div class="critique">
+    <h4>Risk 5: Agent Versioning Complexity Becomes Unmanageable at Scale</h4>
+    <p>With 20+ specialized agents across two pillars, versioning creates a combinatorial compatibility problem. When the Finance Process Orchestrator references the Budget Variance Agent at v1.2, and the Analytics Orchestrator references the Finance Data Agent at v2.0, and the Insight Synthesizer has its own version — managing the compatibility matrix across all of these becomes a full-time engineering function, not a policy.</p>
+    <div class="mitigate">
+      <h4>Mitigation:</h4>
+      <p>Define "interface stability contracts" — agents guarantee backward compatibility on their declared input/output schemas for a minimum 90-day window. Breaking changes require a new agent name, not a new version number. The registry enforces this by preventing same-name schema breaks without a MAJOR version bump. Automated compatibility testing in CI validates that every orchestrator's declared dependency tree is internally consistent.</p>
+    </div>
+  </div>
+
+  <div class="critique">
+    <h4>Risk 6: The Architecture Underestimates Cross-Regional Complexity</h4>
+    <p>The architecture currently handles regional compliance via Gateway routing and compliance tags in the registry. But the complexity of 44,000 restaurants across regions is deeper: EU and APAC data residency laws prohibit certain cross-border data flows even within the analytics pillar. A cross-domain insight that combines EU customer data with global supply chain data may be a GDPR violation depending on how it's processed. The architecture documents this as a compliance tag but does not fully specify the enforcement logic.</p>
+    <div class="mitigate">
+      <h4>Mitigation:</h4>
+      <p>Phase 3 explicitly includes GDPR-compliant regional deployment architecture. In the interim, compliance tags in the registry must include data-residency constraints (not just sensitivity labels), and the Enterprise Orchestrator must enforce data-residency boundaries when constructing cross-domain requests. This requires legal input to the registry metadata schema — it cannot be designed by engineering alone.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════ APPENDIX ═══ -->
+<section>
+<div class="container">
+  <div class="section-label">Appendix</div>
+  <h2>Technology Mapping & Key Architecture Decisions Log</h2>
+
+  <div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr>
+        <th>Architecture Layer</th>
+        <th>Recommended Technology</th>
+        <th>Alternative</th>
+        <th>Decision Rationale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Agent framework</td><td>Google ADK + ag-ui-adk (existing)</td><td>LangGraph, OpenAI Agents SDK</td><td>ADK provides deterministic SequentialAgent/ParallelAgent patterns required for process automation. Existing ag-ui-adk investment preserved.</td></tr>
+      <tr><td>Enterprise Orchestrator model</td><td>Claude Opus 4.x</td><td>Gemini 2.0 Ultra</td><td>Opus provides the highest-quality cross-domain intent decomposition. Provider-agnostic via litellm.</td></tr>
+      <tr><td>Domain agent models</td><td>Claude Haiku 4.x (SQL) / Sonnet 4.x (Process)</td><td>Gemini Flash / Pro</td><td>Model tiering by task complexity. litellm abstraction allows provider switching per agent.</td></tr>
+      <tr><td>Agent Gateway</td><td>TrueFoundry Agent Gateway or custom FastAPI</td><td>Kong AI Gateway, AWS API Gateway</td><td>Agent-native rate limiting, token budgets, MCP compatibility. Standard API gateways lack agent-aware features.</td></tr>
+      <tr><td>Agent Registry</td><td>Custom PostgreSQL-backed service</td><td>TrueFoundry Registry, HashiCorp Consul</td><td>Registry schema must accommodate agent-specific metadata (compliance tags, SLA contracts, permission sets). Generic service discovery registries lack these fields.</td></tr>
+      <tr><td>Session store (persistent)</td><td>PostgreSQL (via ADK DatabaseSessionService)</td><td>DynamoDB, Vertex AI Session Service</td><td>PostgreSQL provides ACID guarantees for process automation checkpoints. Vertex AI option for GCP-native deployment.</td></tr>
+      <tr><td>Semantic memory (long-term)</td><td>pgvector (PostgreSQL extension)</td><td>Pinecone, Vertex AI Vector Search</td><td>Collocated with session store reduces operational complexity. pgvector handles QSR analytics scale comfortably at Phase 1–3.</td></tr>
+      <tr><td>Async queue (process automation)</td><td>Google Pub/Sub or Apache Kafka</td><td>AWS SQS, Azure Service Bus</td><td>Process automation workflows must be decoupled from synchronous response path. Exactly-once semantics required for ERP/HRIS writes.</td></tr>
+      <tr><td>Observability</td><td>OpenTelemetry + Datadog or GCP Cloud Trace</td><td>Jaeger, Honeycomb</td><td>OTel is vendor-neutral and supports LLM-specific semantic conventions. Datadog provides out-of-box LLM observability dashboards.</td></tr>
+      <tr><td>ERP integration (Finance)</td><td>Oracle Finance REST APIs via MCP tool</td><td>Oracle Integration Cloud</td><td>MCP-wrapped Oracle REST APIs keep the integration within the agent tool paradigm. Oracle Integration Cloud adds middleware complexity without benefit.</td></tr>
+      <tr><td>HRIS integration (HR)</td><td>SAP SuccessFactors OData APIs via MCP tool</td><td>SAP Integration Suite</td><td>Same rationale as Finance. MCP wrapper provides audit-logging at the tool call layer.</td></tr>
+      <tr><td>External market data</td><td>Custom MCP server + licensed data feeds</td><td>Pre-loaded warehouse ingestion</td><td>External data freshness (commodity prices, weather) requires real-time or near-real-time access. Pre-loading into the warehouse introduces staleness and licensing complexity.</td></tr>
+      <tr><td>Frontend / chat interface</td><td>CopilotKit + A2UI (existing)</td><td>Custom React chat</td><td>Existing A2UI renderer with InsightBanner surface is directly usable for Phase 1 Insight Engine output. No rebuild required.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout navy mt32">
+    <h4>What This Architecture Is NOT</h4>
+    <p>This is not an AI-first architecture that wraps existing processes in a chat interface. It is not a RAG system over documents. It is not a single AI assistant with many tools. It is a <strong>federated multi-tier agent fabric</strong> where each agent has a specific, bounded responsibility within a defined governance structure, connected by explicit protocols, observable end-to-end, and extensible without requiring changes to existing components. The difference matters: architectures designed as "AI wrappers" hit ceilings at the complexity of a single agent's context window. This architecture's ceiling is the complexity of the business itself.</p>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════ FOOTER ═══ -->
+<footer>
+<div class="container">
+  <div class="grid-2" style="gap:32px;">
+    <div>
+      <p style="color:#94a3b8; font-weight:600; margin-bottom:8px;">Enterprise Agent Architecture — Global QSR Intelligence Platform</p>
+      <p>Architecture research grounded in Anthropic's <em>Building Effective Agents</em> guidance, Google ADK multi-agent documentation, OpenAI Agents SDK patterns, and current industry practice for enterprise-scale agent deployments.</p>
+      <p class="mt8">Prepared: May 2026 · Version 1.0 · For internal architecture review</p>
+    </div>
+    <div>
+      <p style="color:#94a3b8; font-weight:600; margin-bottom:8px;">Primary Sources</p>
+      <ul style="list-style:none; font-size:0.82rem;">
+        <li>Anthropic: Building Effective Agents, Multi-Agent Research System Engineering</li>
+        <li>Google ADK: Multi-agent documentation, Session & State management, Vertex AI Agent Engine</li>
+        <li>OpenAI: Agents SDK Python, Swarm successor patterns</li>
+        <li>Industry: TrueFoundry Agent Registry, Microsoft Agent Governance Toolkit, LangGraph Supervisor</li>
+        <li>OpenTelemetry: AI Agent Observability specification (2025)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</footer>
+
+</body>
+</html>

@@ -16,12 +16,14 @@
     "@copilotkit/react-ui": "^1.54.1",
     "@copilotkit/runtime": "^1.54.1",
     "@langchain/core": "^1.1.39",
+    "@xyflow/react": "^12.10.2",
     "next": "^16.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-simple-maps": "^3.0.0",
     "recharts": "^2.15.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -26,4 +26,104 @@ const handler = createCopilotRuntimeHandler({
   mode: "single-route",
 });
 
-export const POST = (req: Request) => handler(req);
+// ---------------------------------------------------------------------------
+// AG-UI event interception for the observability plane
+//
+// We tee the response stream: one copy goes to the client unchanged,
+// the other is parsed for AG-UI SSE events and forwarded to the backend
+// observability collector via POST /observe/agui/{session_id}.
+//
+// This is fire-and-forget — it must NOT add latency to the client stream.
+// ---------------------------------------------------------------------------
+
+const BACKEND = "http://localhost:8000";
+
+function extractSessionId(body: Record<string, unknown>): string {
+  // CopilotKit / AG-UI request shapes vary; try common field names
+  return (
+    (body.threadId as string) ??
+    (body.sessionId as string) ??
+    (body.session_id as string) ??
+    ""
+  );
+}
+
+async function forwardAguiEvents(
+  stream: ReadableStream<Uint8Array>,
+  sessionId: string,
+): Promise<void> {
+  if (!sessionId) return;
+
+  const decoder = new TextDecoder();
+  const reader = stream.getReader();
+  const batch: Record<string, unknown>[] = [];
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim();
+        if (!raw || raw === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(raw) as Record<string, unknown>;
+          if (parsed.type) {
+            batch.push({ ...parsed, _ts: Date.now() });
+          }
+        } catch {
+          // not JSON — skip
+        }
+      }
+    }
+
+    if (batch.length > 0) {
+      // Fire-and-forget POST to backend observability collector
+      fetch(`${BACKEND}/observe/agui/${sessionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(batch),
+      }).catch(() => {});
+    }
+  } catch {
+    // ignore — observability is best-effort
+  }
+}
+
+export const POST = async (req: Request): Promise<Response> => {
+  // Read body for session_id extraction (clone so original is not consumed)
+  let sessionId = "";
+  try {
+    const bodyClone = req.clone();
+    const body = (await bodyClone.json()) as Record<string, unknown>;
+    sessionId = extractSessionId(body);
+  } catch {
+    // body parse failure is non-fatal for observability
+  }
+
+  const response = await handler(req);
+
+  // Only intercept streaming responses
+  if (response.body && sessionId) {
+    try {
+      const [clientStream, observeStream] = response.body.tee();
+      // Forward observe stream in background — do NOT await
+      forwardAguiEvents(observeStream, sessionId).catch(() => {});
+      return new Response(clientStream, {
+        status: response.status,
+        headers: response.headers,
+      });
+    } catch {
+      // Tee failed — return original response untouched
+      return response;
+    }
+  }
+
+  return response;
+};

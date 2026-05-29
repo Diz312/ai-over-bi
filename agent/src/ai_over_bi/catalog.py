@@ -111,7 +111,7 @@ VIZ_CATALOG: tuple[VizCatalogEntry, ...] = (
         component_name="DataTable",
         payload_class=DataTablePayload,
         description="Tabular detail view with typed columns.",
-        when_to_use="Drilldown detail. Always include alongside charts so analysts can inspect underlying numbers.",
+        when_to_use="Drilldown detail. Include in response when charts are not enough to answer the question and tabular data is needed for detailed drilldown analysis. Should only be used when absolutely necessary and only if the question is not answered by the charts.",
         props_summary='{ title?, columns: [{key, label, type?: "string"|"number"|"currency"|"percentage", align?: "left"|"right"|"center"}], rows: [{<key>: value}], caption? }',
     ),
     VizCatalogEntry(

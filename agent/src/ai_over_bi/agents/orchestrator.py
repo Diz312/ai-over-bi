@@ -20,6 +20,12 @@ from ai_over_bi.config import settings
 from ai_over_bi.agents.data_query import build_data_query_agent
 from ai_over_bi.agents.analyst import build_analyst_agent
 from ai_over_bi.agents.prompt_loader import load_prompt
+from ai_over_bi.agents.callbacks import (
+    before_agent_callback,
+    after_agent_callback,
+    before_model_callback,
+    after_model_callback,
+)
 from ai_over_bi.tools.a2ui import render_surface
 
 logger = logging.getLogger(__name__)
@@ -37,6 +43,10 @@ def build_orchestrator() -> LlmAgent:
         model=LiteLlm(model=f"anthropic/{settings.ORCHESTRATOR_MODEL}"),
         instruction=_INSTRUCTION,
         sub_agents=[data_query_agent, analyst_agent],
+        before_agent_callback=before_agent_callback,
+        after_agent_callback=after_agent_callback,
+        before_model_callback=before_model_callback,
+        after_model_callback=after_model_callback,
     )
 
     logger.info(
@@ -59,4 +69,5 @@ def build_adk_agent() -> ADKAgent:
         user_id="demo_user",
         session_timeout_seconds=settings.SESSION_TIMEOUT_SECONDS,
         use_in_memory_services=True,
+        use_thread_id_as_session_id=True,  # ensures ctx.session.id == threadId from observe page
     )

@@ -505,6 +505,7 @@ export default function HomePage() {
               { label: "Home", active: true, href: "/" },
               { label: "Reports Catalog", active: false, href: "#" },
               { label: "Data Agent", active: false, href: "/agent" },
+              { label: "Observe", active: false, href: "/observe" },
             ].map(({ label, active, href }) => (
               <Link
                 key={label}

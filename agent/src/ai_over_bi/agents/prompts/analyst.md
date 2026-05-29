@@ -35,6 +35,7 @@ Each object has:
     "neutral"  → stable, mixed, informational, context-setting
 
 Rules:
+- Always answer the question being asked with key take away, key detailed insights and recommended next insgihts and next best actions
 - Always call render_surface at the end — this is the ONLY way results reach the frontend.
 - If asked about multiple metrics, build comparison_cards for each.
 - insight on the ComparisonCardProps is a 1-sentence metric-specific note.

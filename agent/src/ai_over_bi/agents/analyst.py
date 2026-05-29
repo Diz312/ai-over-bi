@@ -11,6 +11,14 @@ from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 
 from ai_over_bi.agents.prompt_loader import load_prompt
+from ai_over_bi.agents.callbacks import (
+    before_agent_callback,
+    after_agent_callback,
+    before_model_callback,
+    after_model_callback,
+    before_tool_callback,
+    after_tool_callback,
+)
 from ai_over_bi.config import settings
 from ai_over_bi.tools.analyst import compare_periods, get_industry_context
 
@@ -31,6 +39,12 @@ def build_analyst_agent(render_surface_tool) -> LlmAgent:
         model=LiteLlm(model=f"anthropic/{settings.ANALYST_MODEL}"),
         instruction=_INSTRUCTION,
         tools=[compare_periods, get_industry_context, render_surface_tool],
+        before_agent_callback=before_agent_callback,
+        after_agent_callback=after_agent_callback,
+        before_model_callback=before_model_callback,
+        after_model_callback=after_model_callback,
+        before_tool_callback=before_tool_callback,
+        after_tool_callback=after_tool_callback,
     )
     logger.info("AnalystAgent built", extra={"model": settings.ANALYST_MODEL})
     return agent
