@@ -14,40 +14,33 @@ import {
   SHADOW_CARD,
 } from "@/lib/theme";
 
-// ── Figma MCP asset URLs ──────────────────────────────────────────────────────
-const IMG_NAV_LOGO = "https://www.figma.com/api/mcp/asset/eec50283-af19-401c-8319-b8016be5e6f1";
-const IMG_NAV_CHAT = "https://www.figma.com/api/mcp/asset/de64d349-39f2-4ca7-a54e-17d3d769cff5";
-const IMG_NAV_AVATAR = "https://www.figma.com/api/mcp/asset/98cd8741-b5cf-4763-bcdc-b5fc200a6f33";
-const IMG_USER_AVATAR = "https://www.figma.com/api/mcp/asset/63744335-d123-4b66-ac47-15c26c615299";
-const IMG_KPI_SPARK_GREEN = "https://www.figma.com/api/mcp/asset/4c79414d-48fa-44f6-ab22-dbd8e4d83fe7";
-const IMG_KPI_SPARK_RED = "https://www.figma.com/api/mcp/asset/2bd89fd5-8e1f-4149-9cb9-4e8887707ee5";
-const IMG_CALL_MADE_GREEN = "https://www.figma.com/api/mcp/asset/366a0037-81b3-4098-9eb8-4854fdf0d88f";
-const IMG_CALL_MADE_RED = "https://www.figma.com/api/mcp/asset/ae2c5f3d-e6f4-4158-b71f-f07bb509c690";
-const IMG_INSTANT_MIX = "https://www.figma.com/api/mcp/asset/f929cf4b-c3a6-4e53-bde9-81ca01a70c16";
-const IMG_EXPLORE_AI_CHAT = "https://www.figma.com/api/mcp/asset/65d2c6a7-4a81-4887-bbd9-094c87c0d0d4";
-const IMG_CHEVRON_UP = "https://www.figma.com/api/mcp/asset/0114ae88-8227-4bad-a9eb-ac874b9a495a";
-const IMG_CHEVRON_DOWN = "https://www.figma.com/api/mcp/asset/ff7c6b2e-091a-4615-a88e-3fadda369931";
-const IMG_COMP_ICON = "https://www.figma.com/api/mcp/asset/b4ff6537-51df-45f1-a76d-86666d134fe4";
-// Comparability section KPI tile assets
-const IMG_COMP_ARROW_GREEN = "https://www.figma.com/api/mcp/asset/901c688f-1e23-4bce-81db-93b35ad8f915";
-const IMG_COMP_ARROW_RED = "https://www.figma.com/api/mcp/asset/16ad81d7-8f18-4f29-9b0e-32cf683f1be0";
-const IMG_COMP_SPARK_GREEN = "https://www.figma.com/api/mcp/asset/91724676-9708-46d1-b99e-fd6a96f194b4";
-const IMG_COMP_SPARK_RED = "https://www.figma.com/api/mcp/asset/3cd9b5c0-2eba-47f4-990f-cd38eaea5699";
-const IMG_COMP_SPARK_RED2 = "https://www.figma.com/api/mcp/asset/15e7d89b-0994-47b1-a6c1-f9d3083461e9";
-// Chart + table screenshots from Figma (static visuals for demo)
-const IMG_TABLE = "https://www.figma.com/api/mcp/asset/bee4e3e6-b66e-41d7-8368-1e8c719dcf8b";
-// Bottom chart section graph assets
+// ── Local asset paths ─────────────────────────────────────────────────────────
+const IMG_NAV_LOGO        = "/icons/mcd-logo.svg";
+const IMG_NAV_CHAT        = "/icons/nav-chat.svg";
+const IMG_NAV_AVATAR      = "/icons/nav-avatar.svg";
+const IMG_USER_AVATAR     = "/icons/user-avatar.svg";
+const IMG_KPI_SPARK_GREEN = "/icons/kpi-spark-green.svg";
+const IMG_KPI_SPARK_RED   = "/icons/kpi-spark-red.svg";
+const IMG_INSTANT_MIX     = "/icons/instant-mix.svg";
+const IMG_EXPLORE_AI_CHAT = "/icons/explore-ai-chat.svg";
+const IMG_COMP_ICON       = "/icons/mcd-logo.svg";
+const IMG_COMP_SPARK_GREEN = "/icons/comp-spark-green.svg";
+const IMG_COMP_SPARK_RED  = "/icons/comp-spark-red.svg";
+const IMG_COMP_SPARK_RED2 = "/icons/comp-spark-red.svg";
+const IMG_TABLE           = "/icons/table.png";
+// Note: direction arrows (call_made) and chevrons are rendered as inline SVG below
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function SectionChevron({ direction = "up" }: { direction?: "up" | "down" }) {
   return (
     <div style={{ width: 15, height: 15, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <img
-        alt=""
-        src={direction === "up" ? IMG_CHEVRON_UP : IMG_CHEVRON_DOWN}
-        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-      />
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {direction === "up"
+          ? <path d="M6 15L12 9L18 15" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          : <path d="M6 9L12 15L18 9" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        }
+      </svg>
     </div>
   );
 }
@@ -195,12 +188,13 @@ function KpiBadge({
       >
         {value}
       </span>
-      <div style={{ position: "relative", width: 24, height: 24, flexShrink: 0 }}>
-        <img
-          alt=""
-          src={isUp ? IMG_CALL_MADE_GREEN : IMG_CALL_MADE_RED}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }}
-        />
+      <div style={{ width: 24, height: 24, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {isUp
+            ? <path d="M4 17L14 7M14 7H7M14 7V14" stroke="#09781C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            : <path d="M4 7L14 17M14 17H7M14 17V10" stroke="#D90007" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          }
+        </svg>
       </div>
     </div>
   );
@@ -363,12 +357,13 @@ function CompKpiTile({
         >
           {value}
         </span>
-        <div style={{ position: "relative", width: 24, height: 24, flexShrink: 0 }}>
-          <img
-            alt=""
-            src={isUp ? IMG_COMP_ARROW_GREEN : IMG_COMP_ARROW_RED}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }}
-          />
+        <div style={{ width: 24, height: 24, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {isUp
+              ? <path d="M4 17L14 7M14 7H7M14 7V14" stroke="#09781C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              : <path d="M4 7L14 17M14 17H7M14 17V10" stroke="#D90007" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            }
+          </svg>
         </div>
       </div>
       <div style={{ height: 28, width: "100%", overflow: "hidden" }}>
@@ -424,11 +419,9 @@ function DropdownField({ label, value }: { label: string; value: string }) {
           {value}
         </p>
         <div style={{ width: 12, height: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <img
-            alt=""
-            src={IMG_CHEVRON_DOWN}
-            style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-          />
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9L12 15L18 9" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
       </div>
     </div>
@@ -531,11 +524,11 @@ export default function HomePage() {
           </div>
           {/* Right: chat + avatar */}
           <div style={{ display: "flex", gap: 16, alignItems: "center", flexShrink: 0 }}>
-            <div style={{ position: "relative", width: 25, height: 25 }}>
-              <img alt="" src={IMG_NAV_CHAT} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+            <div style={{ width: 25, height: 25, flexShrink: 0 }}>
+              <img alt="" src={IMG_NAV_CHAT} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
             </div>
-            <div style={{ position: "relative", width: 36, height: 36 }}>
-              <img alt="" src={IMG_NAV_AVATAR} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", borderRadius: "50%" }} />
+            <div style={{ width: 36, height: 36, flexShrink: 0 }}>
+              <img alt="" src={IMG_NAV_AVATAR} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", borderRadius: "50%" }} />
             </div>
           </div>
         </div>
@@ -596,8 +589,8 @@ export default function HomePage() {
             }}
           >
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <div style={{ position: "relative", width: 64, height: 64, flexShrink: 0 }}>
-                <img alt="" src={IMG_USER_AVATAR} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+              <div style={{ width: 64, height: 64, flexShrink: 0 }}>
+                <img alt="" src={IMG_USER_AVATAR} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
               </div>
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <p

@@ -8,9 +8,9 @@ import {
   SHADOW_CARD,
 } from "@/lib/theme";
 
-const IMG_NAV_LOGO   = "https://www.figma.com/api/mcp/asset/eec50283-af19-401c-8319-b8016be5e6f1";
-const IMG_NAV_CHAT   = "https://www.figma.com/api/mcp/asset/de64d349-39f2-4ca7-a54e-17d3d769cff5";
-const IMG_NAV_AVATAR = "https://www.figma.com/api/mcp/asset/98cd8741-b5cf-4763-bcdc-b5fc200a6f33";
+const IMG_NAV_LOGO   = "/icons/mcd-logo.svg";
+const IMG_NAV_CHAT   = "/icons/nav-chat.svg";
+const IMG_NAV_AVATAR = "/icons/nav-avatar.svg";
 
 const NAV_LINKS = [
   { label: "Home",                  href: "/",       active: false },

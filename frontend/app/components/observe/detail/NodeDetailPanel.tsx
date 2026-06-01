@@ -5,7 +5,7 @@
  * thinking stream, tool calls, and cache info.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useObserveStore } from "../../../../lib/observe/store";
 import {
   COLOR_TEXT_MUTED,
@@ -25,7 +25,8 @@ import {
   formatMs,
   formatTokens,
 } from "../../../../lib/observe/theme";
-import type { Span } from "../../../../lib/observe/types";
+import type { ContextSourceNodeData, Span } from "../../../../lib/observe/types";
+import { INITIAL_NODES } from "../canvas/topology";
 import { MODEL_CONTEXT_LIMITS } from "../../../../lib/observe/pricing";
 
 export default function NodeDetailPanel() {
@@ -37,6 +38,12 @@ export default function NodeDetailPanel() {
   const nodeStates = useObserveStore((s) => s.nodeStates);
 
   if (!selectedNodeId) return null;
+
+  // Check if this is a context source node
+  const contextNode = INITIAL_NODES.find(
+    (n) => n.id === selectedNodeId && n.type === "contextSourceNode"
+  );
+  const contextData = contextNode?.data as ContextSourceNodeData | undefined;
 
   const spans = selectedTurnDetail?.spans ?? currentSpans;
   const nodeSpans = spans.filter(
@@ -91,22 +98,105 @@ export default function NodeDetailPanel() {
       </div>
 
       <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Context source file viewer */}
+        {contextData && <PromptFileSection fileName={contextData.fileName} nodeType={contextData.nodeType} staticTokens={staticTokens?.[contextData.fileName] ?? contextData.staticTokens} />}
+
         {/* Metrics */}
-        {llmSpan && <MetricsSection span={llmSpan} />}
-        {isTool && toolSpans.map((ts) => <ToolSpanSection key={ts.span_id} span={ts} />)}
+        {!contextData && llmSpan && <MetricsSection span={llmSpan} />}
+        {!contextData && isTool && toolSpans.map((ts) => <ToolSpanSection key={ts.span_id} span={ts} />)}
 
         {/* Context window */}
-        {llmSpan && <ContextWindowSection span={llmSpan} staticTokens={staticTokens} nodeId={selectedNodeId} />}
+        {!contextData && llmSpan && <ContextWindowSection span={llmSpan} staticTokens={staticTokens} nodeId={selectedNodeId} />}
 
         {/* Cache */}
-        {llmSpan && llmSpan.tokens_cached > 0 && <CacheSection span={llmSpan} />}
+        {!contextData && llmSpan && llmSpan.tokens_cached > 0 && <CacheSection span={llmSpan} />}
 
         {/* Thinking */}
-        {llmSpan?.thinking_text && <ThinkingStream text={llmSpan.thinking_text} />}
+        {!contextData && llmSpan?.thinking_text && <ThinkingStream text={llmSpan.thinking_text} />}
 
         {/* Assembled prompt */}
-        {llmSpan?.assembled_prompt && <AssembledPromptSection prompt={llmSpan.assembled_prompt} />}
+        {!contextData && llmSpan?.assembled_prompt && <AssembledPromptSection prompt={llmSpan.assembled_prompt} />}
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PromptFileSection — shown when a context source node is selected
+// ---------------------------------------------------------------------------
+
+const BACKEND = "http://localhost:8000";
+
+const TYPE_LABEL: Record<string, string> = {
+  system_prompt: "System Prompt",
+  shared_rules: "Shared Rules",
+  catalog: "Catalog",
+};
+
+function PromptFileSection({
+  fileName,
+  nodeType,
+  staticTokens,
+}: {
+  fileName: string;
+  nodeType: string;
+  staticTokens: number;
+}) {
+  const [content, setContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    setContent(null);
+    setLoading(true);
+    fetch(`${BACKEND}/observe/prompt_file/${encodeURIComponent(fileName)}`)
+      .then((r) => r.json())
+      .then((d) => setContent(d.content ?? ""))
+      .catch(() => setContent("(failed to load)"))
+      .finally(() => setLoading(false));
+  }, [fileName]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {/* File meta */}
+      <Section title="File Info">
+        <MetricRow label="Name" value={fileName} />
+        <MetricRow label="Type" value={TYPE_LABEL[nodeType] ?? nodeType} />
+        <MetricRow label="Est. tokens" value={`~${staticTokens.toLocaleString()}`} />
+      </Section>
+
+      {/* File content */}
+      <Section
+        title={`Content${content ? ` (${content.length.toLocaleString()} chars)` : ""}`}
+        collapsible
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((v) => !v)}
+      >
+        {!collapsed && (
+          loading ? (
+            <span style={{ fontSize: FONT_XS, color: COLOR_TEXT_MUTED }}>Loading...</span>
+          ) : (
+            <pre
+              style={{
+                margin: 0,
+                fontSize: "10px",
+                color: "#374151",
+                fontFamily: "monospace",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                background: "#F9FAFB",
+                padding: 8,
+                borderRadius: 4,
+                maxHeight: 420,
+                overflowY: "auto",
+                lineHeight: 1.5,
+              }}
+            >
+              {content ?? ""}
+            </pre>
+          )
+        )}
+      </Section>
     </div>
   );
 }

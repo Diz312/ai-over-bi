@@ -8,7 +8,7 @@
 
 import { useEffect, useRef } from "react";
 import { useObserveStore } from "../store";
-import type { AgUIEvent, Span, TurnSummary } from "../types";
+import type { AgUIEvent, SessionTotals, Span, TurnSummary } from "../types";
 
 const BACKEND = "http://localhost:8000";
 
@@ -25,6 +25,7 @@ export function useTurnStream() {
   const setCurrentTurn = useObserveStore((s) => s.setCurrentTurn);
   const setTtft = useObserveStore((s) => s.setTtft);
   const setIsRunning = useObserveStore((s) => s.setIsRunning);
+  const setSessionTotals = useObserveStore((s) => s.setSessionTotals);
 
   const esRef = useRef<EventSource | null>(null);
 
@@ -119,6 +120,12 @@ export function useTurnStream() {
         const turn = data.turn as TurnSummary;
         addTurnToHistory(turn);
         setIsRunning(false);
+        // Refresh session totals so the sidebar stats stay current
+        const sid = useObserveStore.getState().sessionId;
+        fetch(`${BACKEND}/observe/session/${sid}/totals`)
+          .then((r) => r.json())
+          .then((totals: SessionTotals) => setSessionTotals(totals))
+          .catch(() => {});
       } catch {}
     });
 

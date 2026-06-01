@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="instant_mix">
+<mask id="mask0_0_53" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+<rect id="Bounding box" width="24" height="24" fill="var(--fill-0, #D9D9D9)"/>
+</mask>
+<g mask="url(#mask0_0_53)">
+<path id="instant_mix_2" d="M5.17285 19.7502V12.6925L3.17285 12.6925V11.1925L8.67285 11.1925V12.6925L6.67285 12.6925V19.7502L5.17285 19.7502ZM5.17285 8.80799V4.25024L6.67285 4.25024V8.80799L5.17285 8.80799ZM9.24985 8.80799V7.30799L11.2499 7.30799V4.25024L12.7499 4.25024V7.30799L14.7499 7.30799V8.80799L9.24985 8.80799ZM11.2499 19.7502V11.1925L12.7499 11.1925V19.7502L11.2499 19.7502ZM17.3269 19.7502V16.6925L15.3269 16.6925V15.1925L20.8269 15.1925V16.6925L18.8269 16.6925V19.7502L17.3269 19.7502ZM17.3269 12.808V4.25024L18.8269 4.25024V12.808L17.3269 12.808Z" fill="var(--fill-0, #6F6F6F)"/>
+</g>
+</g>
+</svg>

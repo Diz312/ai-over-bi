@@ -99,6 +99,9 @@ export interface ObserveStore {
   // Running state
   isRunning: boolean;
   setIsRunning: (v: boolean) => void;
+
+  // Start a brand-new session (clears all per-turn and history state)
+  newSession: () => void;
 }
 
 export const useObserveStore = create<ObserveStore>((set, get) => ({
@@ -181,4 +184,23 @@ export const useObserveStore = create<ObserveStore>((set, get) => ({
 
   isRunning: false,
   setIsRunning: (v) => set({ isRunning: v }),
+
+  newSession: () =>
+    set({
+      sessionId: `obs-${Date.now()}`,
+      nodeStates: {},
+      currentSpans: [],
+      currentAgUIEvents: [],
+      selectedNodeId: null,
+      scrollToEventIndex: null,
+      currentTurnId: null,
+      currentQuestion: "",
+      turnStartedAt: null,
+      ttftMs: null,
+      turnHistory: [],
+      selectedTurnDetail: null,
+      comparisonTurnIds: [],
+      sessionTotals: null,
+      isRunning: false,
+    }),
 }));

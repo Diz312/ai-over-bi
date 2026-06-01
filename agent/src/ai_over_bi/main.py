@@ -265,6 +265,33 @@ async def turn_ttft(body: TurnTtftRequest) -> dict[str, str]:
 
 
 @app.post(
+    "/observe/session/end/{session_id}",
+    tags=["observe"],
+    summary="End a session — persist any in-progress turn and clean up queues",
+)
+async def session_end(session_id: str) -> dict[str, Any]:
+    """Called when the user starts a new session from the frontend.
+    Ends any in-progress turn, persists it, and removes the session from memory.
+    """
+    # End any dangling current turn
+    turn = collector.end_turn(session_id)
+    if turn:
+        await save_turn(turn.to_dict())
+
+    # Signal subscribers to disconnect (push None sentinel)
+    state = collector._sessions.get(session_id)
+    if state:
+        for q in list(state.queues):
+            try:
+                q.put_nowait(None)
+            except Exception:
+                pass
+        del collector._sessions[session_id]
+
+    return {"status": "ended", "session_id": session_id}
+
+
+@app.post(
     "/observe/turn/end/{session_id}",
     tags=["observe"],
     summary="Signal the end of a turn and persist it",
@@ -359,6 +386,39 @@ async def session_totals(session_id: str) -> dict[str, Any]:
 async def static_tokens() -> dict[str, int]:
     from ai_over_bi.observability import STATIC_PROMPT_TOKENS
     return STATIC_PROMPT_TOKENS
+
+
+@app.get(
+    "/observe/prompt_file/{filename}",
+    tags=["observe"],
+    summary="Return the raw text of a prompt file by name",
+)
+async def prompt_file(filename: str) -> dict[str, str]:
+    """Serve the text of prompt .md files for the observe page file viewer.
+    Only serves files from the known prompts directory — no path traversal.
+    """
+    from ai_over_bi.observability import _PROMPTS_DIR
+    # Allowlist — only serve known prompt files, never traverse paths
+    allowed = {
+        "orchestrator.md", "data_query.md", "analyst.md",
+        "_metric_display_rules.md", "viz_catalog",
+    }
+    if filename not in allowed:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="File not found")
+
+    if filename == "viz_catalog":
+        # viz_catalog is synthesised from catalog.py, not a raw file
+        from ai_over_bi.catalog import format_catalog_for_prompt
+        return {"filename": filename, "content": format_catalog_for_prompt()}
+
+    path = _PROMPTS_DIR / filename
+    if not path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="File not found")
+
+    content = await asyncio.to_thread(path.read_text)
+    return {"filename": filename, "content": content}
 
 
 # ---------------------------------------------------------------------------

@@ -27,12 +27,15 @@ import {
 import { fetchTurnDetail, searchTurns } from "../../../../lib/observe/hooks/useTurnHistory";
 import type { TurnSummary } from "../../../../lib/observe/types";
 
+const BACKEND = "http://localhost:8000";
+
 export default function TurnHistorySidebar({
   onReplay,
 }: {
   onReplay: (question: string) => void;
 }) {
   const sessionId = useObserveStore((s) => s.sessionId);
+  const newSession = useObserveStore((s) => s.newSession);
   const turnHistory = useObserveStore((s) => s.turnHistory);
   const sessionTotals = useObserveStore((s) => s.sessionTotals);
   const selectedTurnDetail = useObserveStore((s) => s.selectedTurnDetail);
@@ -40,6 +43,13 @@ export default function TurnHistorySidebar({
   const comparisonTurnIds = useObserveStore((s) => s.comparisonTurnIds);
   const toggleComparisonTurn = useObserveStore((s) => s.toggleComparisonTurn);
   const clearComparison = useObserveStore((s) => s.clearComparison);
+
+  const handleNewSession = async () => {
+    // Tell backend to end the current session (persists any dangling turn)
+    fetch(`${BACKEND}/observe/session/end/${sessionId}`, { method: "POST" }).catch(() => {});
+    // Reset frontend state and generate a new sessionId
+    newSession();
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
   const [errorsOnly, setErrorsOnly] = useState(false);
@@ -88,29 +98,47 @@ export default function TurnHistorySidebar({
         overflow: "hidden",
       }}
     >
-      {/* Session analytics */}
-      {sessionTotals && (
-        <div
-          style={{
-            padding: "10px 12px",
-            borderBottom: `1px solid ${PANEL_BORDER}`,
-            display: "flex",
-            flexDirection: "column",
-            gap: 5,
-            flexShrink: 0,
-          }}
-        >
+      {/* Session header */}
+      <div
+        style={{
+          padding: "10px 12px",
+          borderBottom: `1px solid ${PANEL_BORDER}`,
+          display: "flex",
+          flexDirection: "column",
+          gap: 5,
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontSize: FONT_XS, fontWeight: 700, color: COLOR_TEXT_SECONDARY, textTransform: "uppercase" }}>
             Session
           </span>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <button
+            onClick={handleNewSession}
+            title="End this session and start a fresh one"
+            style={{
+              ...btnStyle,
+              fontSize: "10px",
+              padding: "2px 8px",
+              color: "#6366F1",
+              borderColor: "#6366F1",
+            }}
+          >
+            + New Session
+          </button>
+        </div>
+        <span style={{ fontSize: "10px", color: COLOR_TEXT_MUTED, fontFamily: "monospace" }}>
+          {sessionId}
+        </span>
+        {sessionTotals && sessionTotals.turn_count > 0 && (
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 2 }}>
             <Stat label="Turns" value={String(sessionTotals.turn_count)} />
             <Stat label="Total cost" value={formatCost(sessionTotals.total_cost_usd)} />
             <Stat label="Avg cost" value={formatCost(sessionTotals.avg_cost_usd)} />
             <Stat label="Saved" value={formatCost(sessionTotals.total_cache_savings_usd)} highlight />
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Search + filter */}
       <div
